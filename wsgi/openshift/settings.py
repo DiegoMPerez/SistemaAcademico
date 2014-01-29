@@ -17,7 +17,7 @@ else:
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+     ('DiegoMPerez', 'dmperez@gmail.com'),
 )
 MANAGERS = ADMINS
 if ON_OPENSHIFT:
@@ -157,7 +157,7 @@ INSTALLED_APPS = (
     # Uncomment the next line to enable admin documentation:
     # 'django.contrib.admindocs',
     'demo',
-'modulo12',
+    'modulo12',
 )
 
 # A sample logging configuration. The only tangible logging
