@@ -20,7 +20,7 @@ def loginView(request):
                 usuario = authenticate(username=username, password=password)
                 if usuario is not None and usuario.is_active:
                     login(request,usuario)
-                    return HttpResponseRedirect('/')
+                    return HttpResponseRedirect('/acerca')
                 else:
                     mensaje = " USUARIO Y PASSWORD INCORRECTO "
         form = LoginForm()
@@ -32,7 +32,10 @@ def logoutView(request):
     return HttpResponseRedirect('/')
 
 def acercaDe_View(request):
-    return render_to_response('modulo12/acercaDe.html',RequestContext(request))
+    if request.user.is_authenticated():
+        return render_to_response('modulo12/acercaDe.html',RequestContext(request))
+    else:
+        return HttpResponseRedirect('/login')
 
 def estudiantesView(request):
     listaEstudiantes = MatEstudiantes.objects.all();

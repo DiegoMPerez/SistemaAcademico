@@ -4,12 +4,13 @@
 <head>
     {% block titulo %}login{% endblock %}
     {% block content %}
-        <form action="." method="POST">
-    {% csrf_token %}
-    {{ mensaje }}
-    {{ form.as_p }}
-    <input type="submit" value="login">
-</form>
+        <form class="form-inline"  action="." method="POST"  >
+            {% csrf_token %}
+            {{ mensaje }}
+            {{ form.as_p }}
+            <input type="submit" value="login" class="btn btn-primary">
+        </form>
+
     {% endblock %}
 </head>
 <body>
