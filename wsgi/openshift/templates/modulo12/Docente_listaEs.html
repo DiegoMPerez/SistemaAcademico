@@ -1,0 +1,9 @@
+{% extends 'modulo12/base.html' %}
+{% block titulo %} Estudiantes {% endblock %}
+{% block content %}
+    <h1> ESTUDIANTES </h1>
+
+{% for e in estudiantes %}
+    <p><a href="/estudiantes/{{ e.ci }}">{{ e.ci }}</a> </p>
+{% endfor %}
+{% endblock %}

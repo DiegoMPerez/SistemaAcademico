@@ -1,0 +1,24 @@
+{% extends 'modulo12/base.html' %}
+{% block titulo %} Estudiante{% endblock %}
+
+{% block content %}
+    <form action="." method="POST" role="form">
+        <div class="form-group">
+            {% csrf_token %}
+            <p>ESTUDIENTE: {{ estudiante.ci }}</p>
+            <input type="submit" value="ENVIAR" />
+        </div>
+    </form>
+
+    <header>
+    <h1>Fases de Desarrollo</h1>
+    <nav>
+    <a href="{% url "definicionView" %}">fase1</a>
+        {% for l in fases %}
+        <a href="#">{{ l.descripcion_fase }}a</a>
+        {% endfor %}
+    </nav>
+</header>
+{% endblock %}
+{% block fases %}
+{% endblock %}
