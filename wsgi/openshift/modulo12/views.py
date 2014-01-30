@@ -5,7 +5,34 @@ from django.shortcuts import render_to_response
 from django.template import RequestContext
 from modulo12.models import *
 from modulo12.forms import *
+from django.contrib.auth import login, logout, authenticate
 
+def loginView(request):
+    mensaje = ""
+    if request.user.is_authenticated():
+        return HttpResponseRedirect('/')
+    else:
+        if request.method == "POST":
+            form = LoginForm(request.POST)
+            if form.is_valid():
+                username = form.cleaned_data['username']
+                password = form.cleaned_data['password']
+                usuario = authenticate(username=username, password=password)
+                if usuario is not None and usuario.is_active:
+                    login(request,usuario)
+                    return HttpResponseRedirect('/')
+                else:
+                    mensaje = " USUARIO Y PASSWORD INCORRECTO "
+        form = LoginForm()
+        ctx = {'form':form, 'mensaje':mensaje}
+        return render_to_response('modulo12/login.html',ctx,RequestContext(request))
+
+def logoutView(request):
+    logout(request)
+    return HttpResponseRedirect('/')
+
+def acercaDe_View(request):
+    return render_to_response('modulo12/acercaDe.html',RequestContext(request))
 
 def estudiantesView(request):
     listaEstudiantes = MatEstudiantes.objects.all();

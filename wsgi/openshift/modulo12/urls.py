@@ -9,6 +9,12 @@ urlpatterns = patterns('openshift.modulo12.views',
             url(r'^defensa/$','defensaView', name='defensaView'),
             url(r'^correccion/$','correccionDocenteView', name='correccionDocenteView'),
             url(r'^xxx/$','fasesView', name='fasesView'),
+            url(r'^acerca/$','acercaDe_View', name='acercaDe_View'),
+
+            #LOGIN ****************************************************
+            url(r'^login/$','loginView', name='loginView'),
+            url(r'^logout/$','logoutView', name='logoutView'),
+            #LOGIN ****************************************************
 
 
 )
