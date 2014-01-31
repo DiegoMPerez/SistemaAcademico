@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/html">
 <head>
+    {# Load  #}
     {% load bootstrap3 %}
-
     {# Load CSS and JavaScript #}
     {% bootstrap_css %}
     {% bootstrap_javascript %}
@@ -31,9 +31,11 @@
 </nav>
 
 
-<div>
-        {% block content %}
-        {% endblock %}
+<div class="container">
+    <div class="well">
+        {% block content %}{% endblock %}
+        {% bootstrap_javascript jquery=True %}{% bootstrap_javascript jquery=True %}
+    </div>
 </div>
 </body>
 </html>

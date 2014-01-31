@@ -262,6 +262,9 @@ class Docentes(models.Model):
     class Meta:
         db_table = 'docentes'
 
+    def __unicode__(self):
+        return self.cedula
+
 class Ejesformaciones(models.Model):
     ideje = models.IntegerField(primary_key=True)
     nombreeje = models.CharField(max_length=40, blank=True)
@@ -680,7 +683,7 @@ class MtgTabDefensa(models.Model):
     id_defensa = models.AutoField(primary_key=True)
     id_jurado = models.ForeignKey('MtgTabJurados', null=True, db_column='id_jurado', blank=True)
     id_version = models.ForeignKey('MtgTabVersionamiento', null=False, db_column='id_version', blank=False)
-    fecha_defensa = models.DateTimeField(null=True, blank=True)
+    fecha_defensa = models.DateTimeField(null=False, blank=True)
     aprobacion = models.CharField(max_length=1, blank=True)
     correccion = models.TextField(max_length=1000, blank=True)
     resolucion = models.TextField(max_length=10000, blank=True)
@@ -962,6 +965,7 @@ class PrvNota(models.Model):
     aprueba = models.CharField(max_length=2, blank=True)
     class Meta:
         db_table = 'prv_nota'
+
 
 class PrvPracticante(models.Model):
     ci = models.ForeignKey(MatEstudiantes, primary_key=True, db_column='ci')

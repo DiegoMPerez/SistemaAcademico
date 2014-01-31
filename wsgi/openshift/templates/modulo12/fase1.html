@@ -1,12 +1,10 @@
 {% extends 'modulo12/base.html' %}
 {% block titulo %} Definición del Tema{% endblock %}
 {% block content %}
-
-    <form action="." method="POST" role="form">
-        <div class="form-group">
+    <h1>Definición del Tema</h1>
+    <form action="." method="POST">
             {% csrf_token %}
             {{ formulario.as_p }}
             <input type="submit" value="ENVIAR" />
-        </div>
     </form>
 {% endblock %}

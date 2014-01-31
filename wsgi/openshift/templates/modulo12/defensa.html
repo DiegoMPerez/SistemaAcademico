@@ -1,9 +1,7 @@
 {% extends 'modulo12/base.html' %}
 {% block titulo %} Defensa{% endblock %}
 {% block content %}
-
-
- <form action="." method="POST" role="form">
+    <form class="form-inline" role="form">
         <div class="form-group">
             {% csrf_token %}
             {{ formulario.as_p }}

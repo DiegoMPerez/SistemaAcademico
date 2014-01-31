@@ -1,12 +1,13 @@
+{% extends 'modulo12/detalleEstudiante.html' %}
 {% block fases %}
     <header>
-    <h1>Fases de Desarrollo</h1>
-    <nav>
-    <a href="{% url "definicionView" %}">fase1</a>
-        {% for l in fases %}
-        <a href="#">{{ l.descripcion_fase }}a</a>
-        {% endfor %}
-    </nav>
-</header>
+        <h1>Fases de Desarrollo</h1>
+        <nav>
+            <a href="{% url "definicionView" %}">fase1</a>
+            {% for l in fases %}
+                <a href="#">{{ l.descripcion_fase }}a</a>
+            {% endfor %}
+        </nav>
+    </header>
 {% endblock %}
 

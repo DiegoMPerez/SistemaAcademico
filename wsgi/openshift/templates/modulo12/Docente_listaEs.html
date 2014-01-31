@@ -2,8 +2,22 @@
 {% block titulo %} Estudiantes {% endblock %}
 {% block content %}
     <h1> ESTUDIANTES </h1>
-
-{% for e in estudiantes %}
-    <p><a href="/estudiantes/{{ e.ci }}">{{ e.ci }}</a> </p>
-{% endfor %}
+    <table class="table">
+        <thead>
+        <tr>
+            <th>#</th>
+            <th>CI</th>
+            <th>Nombres</th>
+            <th>Apellidos</th>
+        </tr>
+        </thead>
+        {% for e in estudiantes %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td><a href="/estudiantes/{{ e.ci }}/desarrollo">{{ e.ci }}</a></td>
+                <td><a href="/estudiantes/{{ e.ci }}/desarrollo">{{ e.nombre }}</a></td>
+                <td><a href="/estudiantes/{{ e.ci }}/desarrollo">{{ e.apellido }}</a></td>
+            </tr>
+        {% endfor %}
+    </table>
 {% endblock %}
