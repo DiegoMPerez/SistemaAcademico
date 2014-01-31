@@ -45,16 +45,33 @@ def estudiantesView(request):
     ctx = {'estudiantes':listaEstudiantes}
     return render_to_response('modulo12/Docente_listaEs.html',ctx, RequestContext(request))
 
-def definicionView(request, id_e):
-    if request.method == "POST":
-        form = fase1Form(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/')
+def definicionView(request, id_e, id_f):
+    faseN = int(id_f)
+    fase = MtgTabFases.objects.get(id_fase=id_f)
+    if faseN == 1:
+        if request.method == "POST":
+            form = fase1Form(request.POST)
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
+        else:
+            form = fase1Form()
+            ctx = {'formulario':form,"id_e":id_e,"id_f":fase}
+            return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
+    elif faseN > 1 and faseN < 13:
+        if request.method == "POST":
+            form = desarrolloForm(request.POST)
+            if form.is_valid():
+                form.save()
+            return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
+        else:
+            form = desarrolloForm()
+        ctx = {'formulario':form,"id_e":id_e,"id_f":fase}
+        return render_to_response("modulo12/desarrolloFases.html", ctx,RequestContext(request))
     else:
-        form = fase1Form()
-    ctx = {'formulario':form,"id_e":id_e}
-    return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
+        return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
+
+
 
 def defensaView(request):
     if request.method == "POST":
@@ -82,19 +99,6 @@ def correccionDocenteView(request):
     ctx.update(csrf(request))
     ctx['formulario'] = form
     return render_to_response("modulo12/defensa.html", ctx)
-
-
-def desarrolloView(request, id_e, id_fase):
-    if request.method == "POST":
-        form = desarrolloForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/')
-    else:
-        form = desarrolloForm()
-    ctx = {'formulario':form}
-    return render_to_response("modulo12/desarrolloFases.html", ctx,RequestContext(request))
-
 
 def estudianteView(request, id_e):
     est = MatEstudiantes.objects.get(ci=id_e)

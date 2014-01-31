@@ -1,7 +1,7 @@
 {% extends 'modulo12/base.html' %}
-{% block titulo %} Definición del Tema{% endblock %}
+{% block titulo %} {% endblock %}
 {% block content %}
-
+    <h1>{{ id_f.descripcion_fase }}</h1>
     <form action="." method="POST" role="form">
         <div class="form-group">
             {% csrf_token %}
