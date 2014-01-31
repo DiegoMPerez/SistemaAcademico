@@ -9,6 +9,9 @@ from modulo12.forms import *
 from django.contrib.auth import login, logout, authenticate
 from django.contrib.auth.models import User
 
+
+
+##########################################  LOGIN  #######################################################
 def loginView(request):
     mensaje = ""
     if request.user.is_authenticated():
@@ -40,10 +43,44 @@ def acercaDe_View(request):
     else:
         return HttpResponseRedirect('/login')
 
+##########################  DOCENTE  #####################################################################
+
+def docenteListaEstudiantesView(request):
+    listaEstudiantes = MatEstudiantes.objects.all();
+    ctx = {'estudiantes':listaEstudiantes}
+    return render_to_response('modulo12/DocenteListaEstudiantes.html',ctx, RequestContext(request))
+
+def docenteFasesView(request,id_e):
+    est = MatEstudiantes.objects.get(ci=id_e)
+    fases = MtgTabFases.objects.all()
+    ctx = {"estudiante":est, "fases":fases}
+    return render_to_response('modulo12/DocenteEstudianteDetalle.html',ctx, RequestContext(request))
+
+def docenteCorreccionView(request,id_e,id_f):
+    estudiante = MatEstudiantes.objects.get(ci=id_e)
+    fase = MtgTabFases.objects.get(id_fase=id_f)
+    if request.method == "POST":
+        form = correccionDocenteForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('/')
+    else:
+        form = correccionDocenteForm()
+    ctx = {"formulario":form,"id_e":estudiante,"id_f":fase}
+    return render_to_response("modulo12/DocenteCorreccion.html", ctx, RequestContext(request))
+
+#######################################   ESTUDIANTES ##################################################
+
 def estudiantesView(request):
     listaEstudiantes = MatEstudiantes.objects.all();
     ctx = {'estudiantes':listaEstudiantes}
-    return render_to_response('modulo12/Docente_listaEs.html',ctx, RequestContext(request))
+    return render_to_response('modulo12/ListaEstudiantes.html',ctx, RequestContext(request))
+
+def estudianteView(request, id_e):
+    est = MatEstudiantes.objects.get(ci=id_e)
+    fases = MtgTabFases.objects.all()
+    ctx = {"estudiante":est, "fases":fases}
+    return render_to_response('modulo12/EstudianteDetalle.html',ctx, RequestContext(request))
 
 def definicionView(request, id_e, id_f):
     faseN = int(id_f)
@@ -67,11 +104,13 @@ def definicionView(request, id_e, id_f):
         else:
             form = desarrolloForm()
         ctx = {'formulario':form,"id_e":id_e,"id_f":fase}
-        return render_to_response("modulo12/desarrolloFases.html", ctx,RequestContext(request))
+        return render_to_response("modulo12/EstudianteDesarrolloFases.html", ctx,RequestContext(request))
     else:
         return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
 
 
+
+#######################################     DEFENSA         ##################################################
 
 def defensaView(request):
     if request.method == "POST":
@@ -85,31 +124,5 @@ def defensaView(request):
     ctx.update(csrf(request))
     ctx['formulario'] = form
     return render_to_response("modulo12/defensa.html", ctx)
-
-
-def correccionDocenteView(request):
-    if request.method == "POST":
-        form = correccionDocenteForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/')
-    else:
-        form = correccionDocenteForm()
-    ctx = {}
-    ctx.update(csrf(request))
-    ctx['formulario'] = form
-    return render_to_response("modulo12/defensa.html", ctx)
-
-def estudianteView(request, id_e):
-    est = MatEstudiantes.objects.get(ci=id_e)
-    fases = MtgTabFases.objects.all()
-    ctx = {"estudiante":est, "fases":fases}
-    return render_to_response('modulo12/detalleEstudiante.html',ctx, RequestContext(request))
-
-def fasesView(request):
-    fs = MtgTabFases.objects.all()
-    ctx = {"fases":fs}
-    return render_to_response('modulo12/detalleEstudiante.html',ctx, RequestContext(request))
-
 
 

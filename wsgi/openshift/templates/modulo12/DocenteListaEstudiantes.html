@@ -1,7 +1,7 @@
 {% extends 'modulo12/base.html' %}
 {% block titulo %} Estudiantes {% endblock %}
 {% block content %}
-    <h1> ESTUDIANTES </h1>
+    <h2 > ESTUDIANTES DE TRABAJO DE GRADO </h2>
     <table class="table">
         <thead>
         <tr>
@@ -14,9 +14,9 @@
         {% for e in estudiantes %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td><a href="/estudiantes/{{ e.ci }}/desarrollo">{{ e.ci }}</a></td>
-                <td><a href="/estudiantes/{{ e.ci }}/desarrollo">{{ e.nombre }}</a></td>
-                <td><a href="/estudiantes/{{ e.ci }}/desarrollo">{{ e.apellido }}</a></td>
+                <td><a href="{{ e.ci }}/correccion">{{ e.ci }}</a></td>
+                <td><a href="{{ e.ci }}/correccion">{{ e.nombre }}</a></td>
+                <td><a href="{{ e.ci }}/correccion">{{ e.apellido }}</a></td>
             </tr>
         {% endfor %}
     </table>

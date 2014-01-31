@@ -1,6 +1,8 @@
 {% extends 'modulo12/base.html' %}
-{% block titulo %} Defensa{% endblock %}
+{% block titulo %} correccion{% endblock %}
 {% block content %}
+    <h1>{{ id_f.descripcion_fase }}</h1>
+    <h1>{{ id_e.ci }}</h1>
  <form action="." method="POST" role="form">
         <div class="form-group">
             {% csrf_token %}

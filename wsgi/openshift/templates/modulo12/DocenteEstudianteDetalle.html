@@ -1,0 +1,18 @@
+{% extends 'modulo12/base.html' %}
+{% block titulo %} Estudiante{% endblock %}
+
+{% block content %}
+    <form action="." method="POST" role="form">
+        <div class="form-group">
+            {% csrf_token %}
+            <p>ESTUDIENTE: {{ estudiante.apellido }} {{ estudiante.nombre }}</p>
+        </div>
+    </form>
+    {% for f in fases %}
+        <ul class="nav nav-pills">
+           <li> <a href="fase{{ f.id_fase }}/">{{ f.descripcion_fase }}</a></li>
+        </ul>
+
+    {% endfor %}
+{% endblock %}
+
