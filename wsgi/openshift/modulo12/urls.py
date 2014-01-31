@@ -9,7 +9,7 @@ urlpatterns = patterns('openshift.modulo12.views',
             url(r'^estudiantes/$','estudiantesView', name='estudiantesView'),
             url(r'^estudiantes/(?P<id_e>\d+)/desarrollo/$','estudianteView', name='estudianteView'),
             url(r'^estudiantes/(?P<id_e>\d+)/desarrollo/fase(?P<id_f>\d+)/$','definicionView', name='definicionView'),
-            url(r'^estudiantes/defensa/$','defensaView', name='defensaView'),
+            url(r'^estudiantes/(?P<id_e>\d+)/defensa/$','defensaView', name='defensaView'),
 
             url(r'^acerca/$','acercaDe_View', name='acercaDe_View'),
 

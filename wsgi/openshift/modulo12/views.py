@@ -112,7 +112,8 @@ def definicionView(request, id_e, id_f):
 
 #######################################     DEFENSA         ##################################################
 
-def defensaView(request):
+def defensaView(request, id_e):
+    estudiante = MatEstudiantes.objects.get(ci=id_e)
     if request.method == "POST":
         form = defensaForm(request.POST)
         if form.is_valid():
@@ -120,9 +121,7 @@ def defensaView(request):
             return HttpResponseRedirect('/')
     else:
         form = defensaForm()
-    ctx = {}
-    ctx.update(csrf(request))
-    ctx['formulario'] = form
-    return render_to_response("modulo12/defensa.html", ctx)
+    ctx = {"formulario":form, "id_e":estudiante}
+    return render_to_response("modulo12/defensa.html", ctx, RequestContext(request))
 
 
