@@ -2,6 +2,12 @@
 {% block titulo %} {% endblock %}
 {% block content %}
     <h1>{{ id_f.descripcion_fase }}</h1>
+    <h2>LINEAMIENTOS</h2>
+
+    <p class="">{{ lineamiento.lineamientos }}</p>
+    <button type="button" class="btn btn-primary">Default</button>
+    <br/>
+
     <form action="." method="POST" role="form">
         <div class="form-group">
             {% csrf_token %}

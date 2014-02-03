@@ -37,7 +37,7 @@ else:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',  # Add 'postgresql_psycopg2', 'postgresql', 'mysql', 'sqlite3' or 'oracle'.
-            'NAME': 'tgdb',
+            'NAME': 'dbmtg',
             'USER': 'postgres',                      # Not used with sqlite3.
             'PASSWORD': 'd',                  # Not used with sqlite3.
             'HOST': 'localhost',                      # Set to empty string for localhost. Not used with sqlite3.
@@ -56,7 +56,7 @@ TIME_ZONE = 'America/Guayaquil'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'EC-es'
+LANGUAGE_CODE = 'es-EC'
 
 SITE_ID = 1
 

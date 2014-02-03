@@ -1,0 +1,10 @@
+{% extends 'modulo12/base.html' %}
+
+{% block content %}
+    <form action="." method="POST">
+        {% csrf_token %}
+        {{ formulario.as_p }}
+        <input type="submit" value="ENVIAR" />
+    </form>
+
+{% endblock %}

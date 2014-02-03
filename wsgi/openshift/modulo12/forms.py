@@ -1,5 +1,5 @@
 from django.views.generic import ListView
-from modulo12.models import MtgTabDatgenTgrado, MtgTabDefensa, MtgTabCorrecciones, MtgTabDesarrollodefases
+from modulo12.models import *
 from django import forms
 
 
@@ -27,4 +27,12 @@ class correccionDocenteForm(forms.ModelForm):
 class desarrolloForm(forms.ModelForm):
     class Meta:
         model = MtgTabDesarrollodefases
+
+class versionamientoForm(forms.ModelForm):
+    class Meta:
+        model = MtgTabVersionamiento
+
+class fasesForm(forms.ModelForm):
+    class Meta:
+        model = MtgTabFases
 
