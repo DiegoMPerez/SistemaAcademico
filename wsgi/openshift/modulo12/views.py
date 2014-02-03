@@ -159,7 +159,7 @@ def defensaView(request, id_e):
     return render_to_response("modulo12/defensa.html", ctx, RequestContext(request))
 
 
-
+####################################     señales #########################################
 def fasesView(request):
     if request.method == "POST":
         formulario = fasesForm(request.POST)
