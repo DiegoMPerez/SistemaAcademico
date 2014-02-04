@@ -121,5 +121,24 @@ class MtgTabVersionamiento(models.Model):
         db_table = 'mtg_tab_versionamiento'
 
 
+############################## LOGS ####################################
+
+class LogModels(models.Model):
+    id_log_models = models.AutoField(primary_key=True)
+    id_log_usuario = models.ForeignKey('LogUsuarios', db_column='id_log_usuario')
+    nombre_modelo = models.CharField(max_length=50)
+    class Meta:
+        db_table = 'log_models'
+
+class LogUsuarios(models.Model):
+    id_log_usuario = models.AutoField(primary_key=True)
+    id_usuario = models.CharField(max_length=10)
+    nombre_usuario = models.CharField(max_length=50)
+    passw = models.CharField(max_length=50)
+    dia = models.DateField()
+    hora = models.CharField(max_length=10)
+    class Meta:
+        db_table = 'log_usuarios'
+
 
 ###############################  SENALES ###############################

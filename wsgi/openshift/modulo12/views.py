@@ -194,7 +194,12 @@ def print_name(sender, instance, **kwargs):
 
 
 def do_login(sender, user, request, **kwargs):
-    print(user.get_username())
+    logUsuario = LogUsuarios()
+    logUsuario.nombre_usuario = user.get_username()
+    logUsuario.dia = hoydia()
+    logUsuario.hora = hoyhora()
+    logUsuario.id_usuario = user.get_id()
+    logUsuario.save()
 
 user_logged_in.connect(do_login)
 
