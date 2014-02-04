@@ -90,7 +90,7 @@ class MtgTabDesarrollodefases(models.Model):
         db_table = 'mtg_tab_desarrollodefases'
 
 class MtgTabFases(models.Model):
-    id_fase = models.IntegerField(primary_key=True)
+    id_fase = models.AutoField(primary_key=True)
     descripcion_fase = models.CharField(max_length=100, blank=True)
     lineamientos = models.CharField(max_length=500, blank=True)
     class Meta:
@@ -120,3 +120,6 @@ class MtgTabVersionamiento(models.Model):
     class Meta:
         db_table = 'mtg_tab_versionamiento'
 
+
+
+###############################  SENALES ###############################

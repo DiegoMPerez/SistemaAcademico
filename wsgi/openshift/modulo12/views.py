@@ -1,22 +1,27 @@
 # Create your views here.
 from imaplib import _Authenticator
 import datetime
-from django.core.context_processors import csrf
+import user
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.core.context_processors import csrf, request
+from django.core.urlresolvers import reverse
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.forms.models import inlineformset_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+
 from modulo12.models import *
 from modulo12.forms import *
-from django.contrib.auth import login, logout, authenticate
+from django.contrib.auth import login, logout, authenticate, user_logged_in
 from django.contrib.auth.models import User
 
 
 ##########################################  LOGIN  #######################################################
 def loginView(request):
-    mensaje = ""
+    mensaje=""
     if request.user.is_authenticated():
         return HttpResponseRedirect('/')
     else:
@@ -28,10 +33,11 @@ def loginView(request):
                 usuario = authenticate(username=username, password=password)
                 if usuario is not None and usuario.is_active:
                     login(request,usuario)
-                    return HttpResponseRedirect('/acerca')
-                else:
-                    mensaje = " USUARIO Y PASSWORD INCORRECTO "
+                    return HttpResponseRedirect('/')
+            else:
+                mensaje = "USUARIO O PASSWORD INCORRECTOS "
         form = LoginForm()
+        #print(user.f.name)
         ctx = {'form':form, 'mensaje':mensaje}
         return render_to_response('modulo12/login.html',ctx,RequestContext(request))
 
@@ -147,19 +153,23 @@ def definicionView(request, id_e, id_f):
 #######################################     DEFENSA         ##################################################
 
 def defensaView(request, id_e):
-    estudiante = MatEstudiantes.objects.get(ci=id_e)
-    if request.method == "POST":
-        form = defensaForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/')
+    if request.user.is_authenticated():
+        estudiante = MatEstudiantes.objects.get(ci=id_e)
+        if request.method == "POST":
+            form = defensaForm(request.POST)
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect('/')
+        else:
+            form = defensaForm()
+        ctx = {"formulario":form, "id_e":estudiante}
+        return render_to_response("modulo12/defensa.html", ctx, RequestContext(request))
     else:
-        form = defensaForm()
-    ctx = {"formulario":form, "id_e":estudiante}
-    return render_to_response("modulo12/defensa.html", ctx, RequestContext(request))
+        return HttpResponse("No puede votar en esta encuesta.")
 
+###########################################  SENALES   #####################################################
 
-####################################     señales #########################################
+@login_required
 def fasesView(request):
     if request.method == "POST":
         formulario = fasesForm(request.POST)
@@ -178,8 +188,16 @@ def faseGuardada(sender, **kwargs):
 @receiver(post_save, sender=MtgTabFases)
 def print_name(sender, instance, **kwargs):
         op = instance
+
         for f in op.__class__._meta.fields:
             print getattr(op,f.name)
+
+
+def do_login(sender, user, request, **kwargs):
+    print(user.get_username())
+
+user_logged_in.connect(do_login)
+
 
 def hoydia():
     ahora=datetime.datetime.now()
@@ -192,3 +210,40 @@ def hoyhora():
     a_hora=str(hora)
     a_hora=a_hora[:8]
     return a_hora
+
+
+##################################  registro de usuarios
+
+def main(request):
+    return render_to_response('modulo12/main.html', {}, context_instance=RequestContext(request))
+
+def signup(request):
+    if request.method == 'POST':  # If the form has been submitted...
+        form = SignUpForm(request.POST)  # A form bound to the POST data
+        if form.is_valid():  # All validation rules pass
+
+            # Process the data in form.cleaned_data
+            username = form.cleaned_data["username"]
+            password = form.cleaned_data["password"]
+            email = form.cleaned_data["email"]
+            first_name = form.cleaned_data["first_name"]
+            last_name = form.cleaned_data["last_name"]
+
+            # At this point, user is a User object that has already been saved
+            # to the database. You can continue to change its attributes
+            # if you want to change other fields.
+            user = User.objects.create_user(username, email, password)
+            user.first_name = first_name
+            user.last_name = last_name
+
+            # Save new user attributes
+            user.save()
+
+            return HttpResponseRedirect('/')  # Redirect after POST
+    else:
+        form = SignUpForm()
+
+    data = {
+        'form': form,
+    }
+    return render_to_response('modulo12/registro.html', data, context_instance=RequestContext(request))

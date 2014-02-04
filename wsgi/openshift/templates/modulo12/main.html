@@ -1,0 +1,13 @@
+{% extends 'modulo12/base.html' %}
+
+{% block content %}
+<h1>MODULO DE TRABAJOS DE GRADO </h1>
+    {%   if not user.is_authenticated %}
+    <a href="{% url 'signup' %}" class="btn btn-primary">REGISTRO</a>
+    <a href="{% url 'loginView' %}" class="btn btn-primary">INICIAR</a>
+    {% endif %}
+    {%   if user.is_authenticated %}
+        <h4>Bienvenido   << {{ user.get_username.upper }}  >></h4>
+
+    {% endif %}
+{% endblock %}
