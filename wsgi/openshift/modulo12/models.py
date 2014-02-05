@@ -10,8 +10,24 @@ from __future__ import unicode_literals
 
 from django.db import models
 
+class AuthUser(models.Model):
+    id = models.IntegerField(primary_key=True)
+    password = models.CharField(max_length=128)
+    last_login = models.DateTimeField()
+    is_superuser = models.BooleanField()
+    username = models.CharField(max_length=30)
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=30)
+    email = models.CharField(max_length=75)
+    is_staff = models.BooleanField()
+    is_active = models.BooleanField()
+    date_joined = models.DateTimeField()
+    class Meta:
+        db_table = 'auth_user'
+
 class Docentes(models.Model):
-    cedula = models.IntegerField(primary_key=True)
+    id_docente = models.AutoField(primary_key=True)
+    cedula = models.CharField(max_length=10)
     nombres = models.CharField(max_length=50, blank=True)
     apellidos = models.CharField(max_length=50, blank=True)
     titulo_tn = models.CharField(max_length=50, blank=True)
@@ -30,12 +46,13 @@ class Docentes(models.Model):
         return "DOC. %s   %s"%(self.cedula,self.apellidos)
 
 class MatEstudiantes(models.Model):
-    ci = models.CharField(max_length=10,primary_key=True)
+    id_estudiante = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=50)
+    ci = models.CharField(max_length=10)
     apellido = models.CharField(max_length=50)
     telefono = models.CharField(max_length=50)
     direccion = models.CharField(max_length=50)
-    estado = models.BooleanField(null=False , blank=True, default=True)
+    estado = models.BooleanField( blank=True)
     class Meta:
         db_table = 'mat_estudiantes'
 
@@ -53,9 +70,9 @@ class MtgTabCorrecciones(models.Model):
 
 class MtgTabDatgenTgrado(models.Model):
     id_trab_grado = models.AutoField(primary_key=True)
-    tema = models.CharField(max_length=200, blank=True)
-    ci = models.ForeignKey(MatEstudiantes, db_column='ci')
-    cedula = models.ForeignKey(Docentes, db_column='cedula')
+    tema = models.CharField(max_length=100, blank=True)
+    id_estudiante = models.ForeignKey(MatEstudiantes, db_column='id_estudiante')
+    id_docente = models.ForeignKey(Docentes, db_column='id_docente')
     area_investigacion = models.CharField(max_length=200, blank=True)
     entidad_auspicia = models.CharField(max_length=100, blank=True)
     direccion_autor = models.CharField(max_length=100, blank=True)
@@ -68,6 +85,7 @@ class MtgTabDatgenTgrado(models.Model):
     director = models.CharField(max_length=100, blank=True)
     class Meta:
         db_table = 'mtg_tab_datgen_tgrado'
+
 
 class MtgTabDefensa(models.Model):
     id_defensa = models.IntegerField(primary_key=True)
@@ -85,7 +103,7 @@ class MtgTabDesarrollodefases(models.Model):
     id_fases_desarrollo = models.ForeignKey('MtgTabFasesdesarrollo', db_column='id_fases_desarrollo')
     desarrollo = models.CharField(max_length=2000, blank=True)
     fecha_desarrollo = models.DateField(null=True, blank=True)
-    enviar_a_corregir = models.CharField(max_length=1, blank=True)
+    enviar_a_corregir = models.BooleanField(max_length=1, blank=True)
     class Meta:
         db_table = 'mtg_tab_desarrollodefases'
 
@@ -122,23 +140,41 @@ class MtgTabVersionamiento(models.Model):
 
 
 ############################## LOGS ####################################
-
 class LogModels(models.Model):
     id_log_models = models.AutoField(primary_key=True)
     id_log_usuario = models.ForeignKey('LogUsuarios', db_column='id_log_usuario')
     nombre_modelo = models.CharField(max_length=50)
+    accion = models.CharField(max_length=20)
+    descripcion = models.CharField(max_length=50)
+    valor_nuevo = models.CharField(max_length=50)
+    valor_antiguo = models.CharField(max_length=50)
+    dia = models.DateField()
+    hora = models.CharField(max_length=10)
     class Meta:
         db_table = 'log_models'
 
 class LogUsuarios(models.Model):
     id_log_usuario = models.AutoField(primary_key=True)
     id_usuario = models.CharField(max_length=10)
+    passw = models.CharField(max_length=128)
     nombre_usuario = models.CharField(max_length=50)
-    passw = models.CharField(max_length=50)
+    es_super_usuario = models.BooleanField()
+    primer_nombre = models.CharField(max_length=50)
+    segundo_nombre = models.CharField(max_length=50)
+    email = models.CharField(max_length=30)
+    estado_login = models.CharField(max_length=10)
+    tipo_login = models.CharField(max_length=20)
+    activo = models.BooleanField()
     dia = models.DateField()
     hora = models.CharField(max_length=10)
     class Meta:
         db_table = 'log_usuarios'
 
+###############################   ###############################
+class Author(models.Model):
+    name = models.CharField(max_length=100)
 
-###############################  SENALES ###############################
+class Book(models.Model):
+    author = models.ForeignKey(Author)
+    title = models.CharField(max_length=100)
+

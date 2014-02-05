@@ -1,4 +1,5 @@
 # Create your views here.
+from _threading_local import local
 from imaplib import _Authenticator
 import datetime
 import user
@@ -9,13 +10,14 @@ from django.core.urlresolvers import reverse
 from django.db.models.signals import post_save, pre_save
 from django.dispatch import receiver
 from django.forms.models import inlineformset_factory
+from django.forms.formsets import formset_factory
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
-
+from pyanaconda import users
 from modulo12.models import *
 from modulo12.forms import *
-from django.contrib.auth import login, logout, authenticate, user_logged_in
+from django.contrib.auth import login, logout, authenticate, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.models import User
 
 
@@ -92,19 +94,23 @@ def estudiantesView(request):
 
 def estudianteView(request, id_e):
     est = MatEstudiantes.objects.get(ci=id_e)
-    fases = MtgTabFases.objects.all()
+    fases = MtgTabFases.objects.all().order_by('id_fase')
     ctx = {"estudiante":est, "fases":fases}
     return render_to_response('modulo12/EstudianteDetalle.html',ctx, RequestContext(request))
 
 def definicionView(request, id_e, id_f):
     faseN = int(id_f)
     estudianteN = int(id_e)
+    estudiante = MatEstudiantes.objects.get(ci=estudianteN)
     fase = MtgTabFases.objects.get(id_fase=id_f)
     lineamineto = MtgTabFases.objects.get(id_fase=id_f)
+
+    estudianteFormSet = inlineformset_factory(MatEstudiantes,MtgTabDatgenTgrado , extra=1)
+
     if faseN == 1:
         existe = False
         try:
-            definicion = MtgTabDatgenTgrado.objects.get(ci=id_e)
+            definicion = MtgTabDatgenTgrado.objects.get(ci=estudianteN)
             existe = True
         except:
             existe = False
@@ -122,16 +128,14 @@ def definicionView(request, id_e, id_f):
                 return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
         else:
             if request.method == "POST":
-                form = fase1Form(request.POST)
-                versio = versionamientoForm(request.POST)
-                if form.is_valid() and versio.is_valid():
-                    form.save()
-                    versio.save()
+                formSet = estudianteFormSet(request.POST, instance= estudiante)
+                if formSet.is_valid():
+                    formSet.save()
                     return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
             else:
-                form = fase1Form()
-                ctx = {'formulario':form,"id_e":id_e,"id_f":fase}
-                return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
+                formSet = estudianteFormSet(instance= estudiante)
+            ctx = {'formulario':formSet,"id_e":id_e,"id_f":fase}
+            return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
 
     #FASES  > 1
 
@@ -154,14 +158,17 @@ def definicionView(request, id_e, id_f):
 
 def defensaView(request, id_e):
     if request.user.is_authenticated():
-        estudiante = MatEstudiantes.objects.get(ci=id_e)
+        try:
+            estudiante = MatEstudiantes.objects.get(ci=id_e)
+        except:
+            return HttpResponseRedirect('/estudiantes/')
         if request.method == "POST":
             form = defensaForm(request.POST)
             if form.is_valid():
                 form.save()
                 return HttpResponseRedirect('/')
         else:
-            form = defensaForm()
+            form = defensaForm(initial=[{'correccion':'ssss'}][0])
         ctx = {"formulario":form, "id_e":estudiante}
         return render_to_response("modulo12/defensa.html", ctx, RequestContext(request))
     else:
@@ -179,30 +186,113 @@ def fasesView(request):
     else:
         formulario = fasesForm()
     ctx = {"formulario":formulario}
+
     return render_to_response("modulo12/fases.html", ctx, RequestContext(request))
 
 def faseGuardada(sender, **kwargs):
 
     print("%s  %s %s"%(hoydia(),hoyhora()))
 
+
+###
+
+
+
+_thread_locals = local()
+
+
+def get_current_request():
+    """ returns the request object for this thead """
+    return getattr(_thread_locals, "request", None)
+
+
+def get_current_user():
+    """ returns the current user, if exist, otherwise returns None """
+    request = get_current_request()
+    if request:
+        return getattr(request, "User", None)
+
+
+class ThreadLocalMiddleware(object):
+    """ Simple middleware that adds the request object in thread local storage."""
+    def process_request(self, request):
+        _thread_locals.request = request
+##
+
+
 @receiver(post_save, sender=MtgTabFases)
-def print_name(sender, instance, **kwargs):
+def print_name(sender, instance, using, **kwargs):
         op = instance
+        # for f in op.__class__._meta.fields:
+        #    print getattr(op,f.name)
+        #
+        # print getattr(op,op.__class__._meta.fields[0].name)
 
-        for f in op.__class__._meta.fields:
-            print getattr(op,f.name)
+#@receiver(post_save, sender=MtgTabDatgenTgrado)
+#def print_name(sender, instance, created, **kwargs):
+#    if created:
+#        op = instance
+#        versionamiento = MtgTabVersionamiento()
+#        versionamiento.id_trab_grado = getattr(op,op.__class__._meta.fields[0].name)
+#       versionamiento.save()
 
 
-def do_login(sender, user, request, **kwargs):
+def do_loginIn(sender, user, request, **kwargs):
+    userInstance = AuthUser.objects.get(username=user)
     logUsuario = LogUsuarios()
-    logUsuario.nombre_usuario = user.get_username()
+    logUsuario.id_usuario = userInstance.id
+    logUsuario.passw = userInstance.password
+    logUsuario.nombre_usuario = user
+    logUsuario.es_super_usuario = userInstance.is_superuser
+    logUsuario.primer_nombre = userInstance.first_name
+    logUsuario.segundo_nombre = userInstance.last_name
+    logUsuario.email = userInstance.email
+    logUsuario.estado_login = userInstance.is_active
+    logUsuario.tipo_login = "log_in"
     logUsuario.dia = hoydia()
     logUsuario.hora = hoyhora()
-    logUsuario.id_usuario = user.get_id()
     logUsuario.save()
 
-user_logged_in.connect(do_login)
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    print(ip)
 
+user_logged_in.connect(do_loginIn)
+
+def do_login_failed(sender, **kwargs):
+    print(sender)
+
+
+user_login_failed.connect(do_login_failed)
+
+
+def do_loginOut(sender, user, request, **kwargs):
+    userInstance = AuthUser.objects.get(username=user)
+    logUsuario = LogUsuarios()
+    logUsuario.id_usuario = userInstance.id
+    logUsuario.passw = userInstance.password
+    logUsuario.nombre_usuario = user
+    logUsuario.es_super_usuario = userInstance.is_superuser
+    logUsuario.primer_nombre = userInstance.first_name
+    logUsuario.segundo_nombre = userInstance.last_name
+    logUsuario.email = userInstance.email
+    logUsuario.estado_login = userInstance.is_active
+    logUsuario.tipo_login = "log_in"
+    logUsuario.dia = hoydia()
+    logUsuario.hora = hoyhora()
+    logUsuario.save()
+
+user_logged_out.connect(do_loginOut)
+
+
+
+#######################################  CAPTURA DE LA IP   ###############
+
+
+#######################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 def hoydia():
     ahora=datetime.datetime.now()
@@ -215,7 +305,6 @@ def hoyhora():
     a_hora=str(hora)
     a_hora=a_hora[:8]
     return a_hora
-
 
 ##################################  registro de usuarios
 
