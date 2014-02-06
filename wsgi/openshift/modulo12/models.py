@@ -61,11 +61,12 @@ class MatEstudiantes(models.Model):
         return "%s  %s  %s"%(self.ci, self.apellido,self.nombre)
 
 class MtgTabCorrecciones(models.Model):
-    id_desarrollo = models.ForeignKey('MtgTabDesarrollodefases', primary_key=True, db_column='id_desarrollo')
+    id_correccion = models.AutoField(primary_key=True)
+    id_fases_desarrollo = models.ForeignKey('MtgTabFasesdesarrollo', db_column='id_fases_desarrollo')
     fecha = models.DateField()
-    correccion = models.CharField(max_length=2000, blank=True)
+    correccion = models.TextField(max_length=2000, blank=True)
     correjido_por = models.CharField(max_length=100, blank=True)
-    enviar_correccion = models.CharField(max_length=1, blank=True)
+    enviar_correccion = models.BooleanField(max_length=1, blank=True, default=True)
     class Meta:
         db_table = 'mtg_tab_correcciones'
 

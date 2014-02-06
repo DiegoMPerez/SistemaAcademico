@@ -66,22 +66,32 @@ def docenteListaEstudiantesView(request):
     return render_to_response('modulo12/DocenteListaEstudiantes.html',ctx, RequestContext(request))
 
 def docenteFasesView(request,id_e):
-    est = MatEstudiantes.objects.get(ci=id_e)
-    fases = MtgTabFases.objects.all()
-    ctx = {"estudiante":est, "fases":fases}
-    return render_to_response('modulo12/DocenteEstudianteDetalle.html',ctx, RequestContext(request))
+    try:
+        est = MatEstudiantes.objects.get(ci=id_e)
+        fases = MtgTabFases.objects.all()
+        ctx = {"estudiante":est, "fases":fases}
+        return render_to_response('modulo12/DocenteEstudianteDetalle.html',ctx, RequestContext(request))
+    except:
+        error = "ERROR: NO EXISTE EL ESTUDIANTE"
+        url = "/docente/estudiantes/"
+        ctx = {'error':error,"url":url}
+        return render_to_response('modulo12/Error.html',ctx,RequestContext(request))
 
 def docenteCorreccionView(request,id_e,id_f):
     estudiante = MatEstudiantes.objects.get(ci=id_e)
-    #desarrolloEstudiante =
     fase = MtgTabFases.objects.get(id_fase=id_f)
+    defTG = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
+    version = MtgTabVersionamiento.objects.get(id_trab_grado=defTG.id_trab_grado)
+    faseD = MtgTabFasesdesarrollo.objects.get(id_version=version.id_version, id_fase=fase.id_fase)
+    correccionSetForm = inlineformset_factory(MtgTabFasesdesarrollo,MtgTabCorrecciones,extra=1,max_num=1)
+
     if request.method == "POST":
-        form = correccionDocenteForm(request.POST)
+        form = correccionSetForm(request.POST,instance=faseD,initial=[{'fecha':hoydia()}])
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/docente/estudiantes/%s/correccion/'%(id_e))
     else:
-        form = correccionDocenteForm()
+        form = correccionSetForm(instance=faseD,initial=[{'fecha':hoydia()}])
     ctx = {"formulario":form,"id_e":estudiante,"id_f":fase}
     return render_to_response("modulo12/DocenteCorreccion.html", ctx, RequestContext(request))
 
@@ -144,8 +154,9 @@ def definicionView(request, id_e, id_f):
         try:
             definicion = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
         except:
-            error = "Defina primero los datos generales del proyecto de trabajo de grado"
-            ctx = {'error':error,"ci":estudiante.ci}
+            error = "ERROR: NO EXISTE EL ESTUDIANTE"
+            url = "/estudiantes/%s/desarrollo/"%(estudiante.ci)
+            ctx = {'error':error,"url":url}
             return render_to_response('modulo12/Error.html',ctx,RequestContext(request))
         version = MtgTabVersionamiento.objects.get(id_trab_grado=definicion.id_trab_grado)
         fase = MtgTabFases.objects.get(id_fase=faseN)
