@@ -10,6 +10,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 
+
 class AuthUser(models.Model):
     id = models.IntegerField(primary_key=True)
     password = models.CharField(max_length=128)
@@ -48,8 +49,8 @@ class Docentes(models.Model):
 class MatEstudiantes(models.Model):
     id_estudiante = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=50)
-    ci = models.CharField(max_length=10)
     apellido = models.CharField(max_length=50)
+    ci = models.CharField(max_length=10)
     telefono = models.CharField(max_length=50)
     direccion = models.CharField(max_length=50)
     estado = models.BooleanField( blank=True)
@@ -101,9 +102,9 @@ class MtgTabDefensa(models.Model):
 class MtgTabDesarrollodefases(models.Model):
     id_desarrollo = models.AutoField(primary_key=True)
     id_fases_desarrollo = models.ForeignKey('MtgTabFasesdesarrollo', db_column='id_fases_desarrollo')
-    desarrollo = models.CharField(max_length=2000, blank=True)
+    desarrollo = models.TextField(max_length=2000, blank=True)
     fecha_desarrollo = models.DateField(null=True, blank=True)
-    enviar_a_corregir = models.BooleanField(max_length=1, blank=True)
+    enviar_a_corregir = models.BooleanField(max_length=1, blank=True, default=True)
     class Meta:
         db_table = 'mtg_tab_desarrollodefases'
 
@@ -115,8 +116,8 @@ class MtgTabFases(models.Model):
         db_table = 'mtg_tab_fases'
 
 class MtgTabFasesdesarrollo(models.Model):
-    id_fases_desarrollo = models.IntegerField(primary_key=True)
-    id_version = models.ForeignKey('MtgTabVersionamiento', unique=True, db_column='id_version')
+    id_fases_desarrollo = models.AutoField(primary_key=True)
+    id_version = models.ForeignKey('MtgTabVersionamiento', db_column='id_version')
     id_fase = models.ForeignKey(MtgTabFases, db_column='id_fase')
     estado = models.CharField(max_length=1, blank=True)
     class Meta:

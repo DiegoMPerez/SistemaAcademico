@@ -111,6 +111,7 @@ def definicionView(request, id_e, id_f):
         try:
             definicion = MtgTabDatgenTgrado.objects.get(ci=estudianteN)
             version = MtgTabVersionamiento.objects.get(id_trab_grado=definicion.id_trab_grado)
+            print version
             existe = True
         except:
             existe = False
@@ -139,14 +140,24 @@ def definicionView(request, id_e, id_f):
     #FASES  > 1
 
     elif faseN > 1 and faseN < 13:
+        desarrolloSetForm = inlineformset_factory(MtgTabFasesdesarrollo,MtgTabDesarrollodefases,extra=1, max_num=1)
+        try:
+            definicion = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
+        except:
+            error = "Defina primero los datos generales del proyecto de trabajo de grado"
+            ctx = {'error':error,"ci":estudiante.ci}
+            return render_to_response('modulo12/Error.html',ctx,RequestContext(request))
+        version = MtgTabVersionamiento.objects.get(id_trab_grado=definicion.id_trab_grado)
+        fase = MtgTabFases.objects.get(id_fase=faseN)
+        fasesDesarrollo = MtgTabFasesdesarrollo.objects.get(id_fase=fase.id_fase,id_version=version.id_version)
         if request.method == "POST":
-            form = desarrolloForm(request.POST)
-            if form.is_valid():
-                form.save()
-            return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
+            setForm = desarrolloSetForm(request.POST,instance=fasesDesarrollo, initial=[{'fecha_desarrollo':hoydia()}])
+            if setForm.is_valid():
+                setForm.save()
+                return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
         else:
-            form = desarrolloForm()
-        ctx = {'formulario':form,"id_e":id_e,"id_f":fase,"lineamiento":lineamineto}
+            setForm = desarrolloSetForm(instance= fasesDesarrollo, initial=[{'fecha_desarrollo':hoydia()}])
+        ctx = {'formulario':setForm,"id_e":id_e,"id_f":fase,"lineamiento":lineamineto}
         return render_to_response("modulo12/EstudianteDesarrolloFases.html", ctx,RequestContext(request))
     else:
         return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
@@ -216,16 +227,16 @@ class ThreadLocalMiddleware(object):
     """ Simple middleware that adds the request object in thread local storage."""
     def process_request(self, request):
         _thread_locals.request = request
-##
+    ##
 
 
 @receiver(post_save, sender=MtgTabFases)
 def print_name(sender, instance, using, **kwargs):
-        op = instance
-        # for f in op.__class__._meta.fields:
-        #    print getattr(op,f.name)
-        #
-        # print getattr(op,op.__class__._meta.fields[0].name)
+    op = instance
+    # for f in op.__class__._meta.fields:
+    #    print getattr(op,f.name)
+    #
+    # print getattr(op,op.__class__._meta.fields[0].name)
 
 @receiver(post_save, sender=MtgTabDatgenTgrado)
 def do_Vers_Log(sender, instance, created, **kwargs):
@@ -237,6 +248,20 @@ def do_Vers_Log(sender, instance, created, **kwargs):
         versInst.id_trab_grado = TrabGrado
         versInst.fecha = hoydia()
         versInst.save()
+
+@receiver(post_save, sender=MtgTabVersionamiento)
+def do_Fases_Log(sender, instance, created, **kwargs):
+    if created:
+        op = instance
+        vers_id = getattr(op,op.__class__._meta.fields[0].name)
+        versInstancia = MtgTabVersionamiento.objects.get(id_version=vers_id)
+        print versInstancia.fecha
+        fases = MtgTabFases.objects.all()
+        for f in fases:
+            faseDesarrollo = MtgTabFasesdesarrollo()
+            faseDesarrollo.id_version = versInstancia
+            faseDesarrollo.id_fase = f
+            faseDesarrollo.save()
 
 
 def do_loginIn(sender, user, request, **kwargs):
@@ -341,5 +366,5 @@ def signup(request):
 
     data = {
         'form': form,
-    }
+        }
     return render_to_response('modulo12/registro.html', data, context_instance=RequestContext(request))

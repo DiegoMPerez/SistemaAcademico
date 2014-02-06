@@ -22,5 +22,7 @@ urlpatterns = patterns('openshift.modulo12.views',
             url(r'^registro/$','signup', name='signup'),
             url(r'^$','main', name='main'),
 
+
+
 )
 
