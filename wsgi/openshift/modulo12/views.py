@@ -104,36 +104,35 @@ def definicionView(request, id_e, id_f):
     estudiante = MatEstudiantes.objects.get(ci=estudianteN)
     fase = MtgTabFases.objects.get(id_fase=id_f)
     lineamineto = MtgTabFases.objects.get(id_fase=id_f)
-
-    estudianteFormSet = inlineformset_factory(MatEstudiantes,MtgTabDatgenTgrado , extra=1)
+    defTrabFormSet = inlineformset_factory(MatEstudiantes, MtgTabDatgenTgrado,extra=1, max_num=1)
 
     if faseN == 1:
         existe = False
         try:
             definicion = MtgTabDatgenTgrado.objects.get(ci=estudianteN)
+            version = MtgTabVersionamiento.objects.get(id_trab_grado=definicion.id_trab_grado)
             existe = True
         except:
             existe = False
 
         if existe:
             if request.method == "POST":
-                form = fase1Form(request.POST, instance=definicion)
-                if form.is_valid():
-                    form.save()
-
-                    return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
-            else:
-                form = fase1Form(instance=definicion)
-                ctx = {'formulario':form,"id_e":id_e,"id_f":fase}
-                return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
-        else:
-            if request.method == "POST":
-                formSet = estudianteFormSet(request.POST, instance= estudiante)
+                formSet = fase1Form(request.POST, instance=definicion)
                 if formSet.is_valid():
                     formSet.save()
                     return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
             else:
-                formSet = estudianteFormSet(instance= estudiante)
+                form = fase1Form(instance=definicion)
+                ctx = {'formulario':form, "id_e":id_e, "id_f":fase, "fecha":version.fecha}
+                return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
+        else:
+            if request.method == "POST":
+                formSet = defTrabFormSet(request.POST, instance= estudiante)
+                if formSet.is_valid():
+                    formSet.save()
+                    return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
+            else:
+                formSet = defTrabFormSet(instance= estudiante)
             ctx = {'formulario':formSet,"id_e":id_e,"id_f":fase}
             return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
 
@@ -228,13 +227,16 @@ def print_name(sender, instance, using, **kwargs):
         #
         # print getattr(op,op.__class__._meta.fields[0].name)
 
-#@receiver(post_save, sender=MtgTabDatgenTgrado)
-#def print_name(sender, instance, created, **kwargs):
-#    if created:
-#        op = instance
-#        versionamiento = MtgTabVersionamiento()
-#        versionamiento.id_trab_grado = getattr(op,op.__class__._meta.fields[0].name)
-#       versionamiento.save()
+@receiver(post_save, sender=MtgTabDatgenTgrado)
+def do_Vers_Log(sender, instance, created, **kwargs):
+    if created:
+        op = instance
+        vers_id = getattr(op,op.__class__._meta.fields[0].name)
+        TrabGrado = MtgTabDatgenTgrado.objects.get(id_trab_grado=vers_id)
+        versInst = MtgTabVersionamiento()
+        versInst.id_trab_grado = TrabGrado
+        versInst.fecha = hoydia()
+        versInst.save()
 
 
 def do_loginIn(sender, user, request, **kwargs):

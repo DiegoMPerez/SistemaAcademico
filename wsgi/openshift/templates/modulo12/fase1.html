@@ -2,6 +2,7 @@
 {% block titulo %} Definición del Tema{% endblock %}
 {% block content %}
     <h1>Definición del Tema</h1>
+    <p>{{ fecha }}</p>
     <form action="." method="POST">
             {% csrf_token %}
             {{ formulario.as_p }}
