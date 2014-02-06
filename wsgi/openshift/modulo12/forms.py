@@ -38,6 +38,10 @@ class fasesForm(forms.ModelForm):
     class Meta:
         model = MtgTabFases
 
+class juradoForm(forms.ModelForm):
+    class Meta:
+        model = MtgTabJurados
+
 ########################################### REGISTRO
 class SignUpForm(ModelForm):
     class Meta:

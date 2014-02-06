@@ -9,14 +9,18 @@
             <th>CI</th>
             <th>Nombres</th>
             <th>Apellidos</th>
+            <th>Desarrollo</th>
+            <th>Defensa</th>
         </tr>
         </thead>
         {% for e in estudiantes %}
             <tr>
                 <td>{{ forloop.counter }}</td>
-                <td><a href="{{ e.ci }}/desarrollo">{{ e.ci }}</a></td>
-                <td><a href="{{ e.ci }}/desarrollo">{{ e.nombre }}</a></td>
-                <td><a href="{{ e.ci }}/desarrollo">{{ e.apellido }}</a></td>
+                <td>{{ e.ci }}</td>
+                <td>{{ e.nombre }}</td>
+                <td>{{ e.apellido }}</td>
+                <td><a href="{{ e.ci }}/desarrollo" class="btn btn-primary">IR</a></td>
+                <td><a href="{{ e.ci }}/defensa" class="btn btn-primary">IR</a></td>
             </tr>
         {% endfor %}
     </table>

@@ -2,11 +2,9 @@
 {% block titulo %} Defensa{% endblock %}
 {% block content %}
     <h1>{{ id_e.ci }}{{ id_e.apellido }}</h1>
-    <form class="form-inline" role="form">
-        <div class="form-group">
+    <form action="." method="POST">
             {% csrf_token %}
             {{ formulario.as_p }}
             <input type="submit" value="ENVIAR" class="btn btn-primary"/>
-        </div>
     </form>
 {% endblock %}

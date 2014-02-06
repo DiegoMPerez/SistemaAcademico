@@ -121,7 +121,6 @@ def definicionView(request, id_e, id_f):
         try:
             definicion = MtgTabDatgenTgrado.objects.get(ci=estudianteN)
             version = MtgTabVersionamiento.objects.get(id_trab_grado=definicion.id_trab_grado)
-            print version
             existe = True
         except:
             existe = False
@@ -178,22 +177,41 @@ def definicionView(request, id_e, id_f):
 #######################################     DEFENSA         ##################################################
 
 def defensaView(request, id_e):
-    if request.user.is_authenticated():
-        try:
-            estudiante = MatEstudiantes.objects.get(ci=id_e)
-        except:
-            return HttpResponseRedirect('/estudiantes/')
-        if request.method == "POST":
-            form = defensaForm(request.POST)
-            if form.is_valid():
-                form.save()
-                return HttpResponseRedirect('/')
-        else:
-            form = defensaForm(initial=[{'correccion':'ssss'}][0])
-        ctx = {"formulario":form, "id_e":estudiante}
-        return render_to_response("modulo12/defensa.html", ctx, RequestContext(request))
+    defensaSetForm = inlineformset_factory(MtgTabVersionamiento,MtgTabDefensa,extra=1, max_num=1)
+    try:
+        estudiante = MatEstudiantes.objects.get(ci=id_e)
+        defTG = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
+        version = MtgTabVersionamiento.objects.get(id_trab_grado=defTG.id_trab_grado)
+        print(version.id_version)
+    except:
+        error = "ERROR: NO EXISTE EL ESTUDIANTE"
+        url = "/estudiantes/"
+        ctx = {'error':error,"url":url}
+        return render_to_response('modulo12/Error.html',ctx,RequestContext(request))
+    if request.method == "POST":
+        form = defensaSetForm(request.POST, instance=version,initial=[{'fecha_defensa':hoydia()}])
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect('/')
     else:
-        return HttpResponse("No puede votar en esta encuesta.")
+        form = defensaSetForm(instance=version,initial=[{'fecha_defensa':hoydia()}])
+    ctx = {"formulario":form, "id_e":estudiante}
+    return render_to_response("modulo12/defensa.html", ctx, RequestContext(request))
+
+
+
+def juradosView(request):
+    if request.method == "POST":
+        formulario = juradoForm(request.POST)
+        if formulario.is_valid():
+            formulario.save()
+            return HttpResponseRedirect('/estudiantes/')
+    else:
+        formulario = juradoForm()
+    ctx = {'formulario':formulario}
+    return render_to_response('modulo12/jurados.html',ctx, RequestContext(request))
+
+
 
 ###########################################  SENALES   #####################################################
 
@@ -238,7 +256,6 @@ class ThreadLocalMiddleware(object):
     """ Simple middleware that adds the request object in thread local storage."""
     def process_request(self, request):
         _thread_locals.request = request
-    ##
 
 
 @receiver(post_save, sender=MtgTabFases)
@@ -259,6 +276,8 @@ def do_Vers_Log(sender, instance, created, **kwargs):
         versInst.id_trab_grado = TrabGrado
         versInst.fecha = hoydia()
         versInst.save()
+
+
 
 @receiver(post_save, sender=MtgTabVersionamiento)
 def do_Fases_Log(sender, instance, created, **kwargs):
@@ -289,14 +308,13 @@ def do_loginIn(sender, user, request, **kwargs):
     logUsuario.tipo_login = "log_in"
     logUsuario.dia = hoydia()
     logUsuario.hora = hoyhora()
-    logUsuario.save()
-
     x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
     if x_forwarded_for:
         ip = x_forwarded_for.split(',')[0]
     else:
         ip = request.META.get('REMOTE_ADDR')
-    print(ip)
+    logUsuario.ip = ip
+    logUsuario.save()
 
 user_logged_in.connect(do_loginIn)
 
@@ -318,7 +336,7 @@ def do_loginOut(sender, user, request, **kwargs):
     logUsuario.segundo_nombre = userInstance.last_name
     logUsuario.email = userInstance.email
     logUsuario.estado_login = userInstance.is_active
-    logUsuario.tipo_login = "log_in"
+    logUsuario.tipo_login = "log_out"
     logUsuario.dia = hoydia()
     logUsuario.hora = hoyhora()
     logUsuario.save()

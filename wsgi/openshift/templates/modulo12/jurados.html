@@ -1,0 +1,9 @@
+{% extends 'modulo12/base.html' %}
+{% block titulo %}Jurados{% endblock %}
+{% block content %}
+    <form action="." method="POST">
+            {% csrf_token %}
+            {{ formulario.as_p }}
+            <input type="submit" value="GUARDAR" class="btn btn-primary"/>
+    </form>
+{% endblock %}

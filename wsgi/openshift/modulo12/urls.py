@@ -18,6 +18,9 @@ urlpatterns = patterns('openshift.modulo12.views',
             url(r'^logout/$','logoutView', name='logoutView'),
             #LOGIN ****************************************************
 
+            #JURADOS
+            url(r'^jurados/$','juradosView', name='juradosView'),
+
             url(r'^fases/$','fasesView', name='fasesView'),
             url(r'^registro/$','signup', name='signup'),
             url(r'^$','main', name='main'),

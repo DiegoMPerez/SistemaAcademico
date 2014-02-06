@@ -90,13 +90,13 @@ class MtgTabDatgenTgrado(models.Model):
 
 
 class MtgTabDefensa(models.Model):
-    id_defensa = models.IntegerField(primary_key=True)
+    id_defensa = models.AutoField(primary_key=True)
     id_jurado = models.ForeignKey('MtgTabJurados', db_column='id_jurado')
     id_version = models.ForeignKey('MtgTabVersionamiento', db_column='id_version')
     fecha_defensa = models.DateField(null=True, blank=True)
-    aprobacion = models.CharField(max_length=1, blank=True)
-    correccion = models.CharField(max_length=1000, blank=True)
-    resolucion = models.CharField(max_length=10000, blank=True)
+    aprobacion = models.BooleanField(max_length=5, blank=True, default=False)
+    correccion = models.TextField(max_length=1000, blank=True)
+    resolucion = models.TextField(max_length=10000, blank=True)
     class Meta:
         db_table = 'mtg_tab_defensa'
 
@@ -125,13 +125,16 @@ class MtgTabFasesdesarrollo(models.Model):
         db_table = 'mtg_tab_fasesdesarrollo'
 
 class MtgTabJurados(models.Model):
-    id_jurado = models.IntegerField(primary_key=True)
+    id_jurado = models.AutoField(primary_key=True)
     jurado1 = models.CharField(max_length=100, blank=True)
     jurado2 = models.CharField(max_length=100, blank=True)
     jurado3 = models.CharField(max_length=100, blank=True)
     secretario_abogado = models.CharField(max_length=100, blank=True)
     class Meta:
         db_table = 'mtg_tab_jurados'
+
+    def __unicode__(self):
+        return "%s . %s - %s - %s"%(self.id_jurado, self.jurado1, self.jurado2, self.jurado3)
 
 class MtgTabVersionamiento(models.Model):
     id_version = models.AutoField(primary_key=True)
@@ -155,6 +158,7 @@ class LogModels(models.Model):
     class Meta:
         db_table = 'log_models'
 
+
 class LogUsuarios(models.Model):
     id_log_usuario = models.AutoField(primary_key=True)
     id_usuario = models.CharField(max_length=10)
@@ -169,8 +173,10 @@ class LogUsuarios(models.Model):
     activo = models.BooleanField()
     dia = models.DateField()
     hora = models.CharField(max_length=10)
+    ip = models.CharField(max_length=20)
     class Meta:
         db_table = 'log_usuarios'
+
 
 ###############################   ###############################
 class Author(models.Model):
