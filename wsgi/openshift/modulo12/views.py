@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Create your views here.
 from _threading_local import local
 from imaplib import _Authenticator
@@ -7,7 +8,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import UserCreationForm
 from django.core.context_processors import csrf, request
 from django.core.urlresolvers import reverse
-from django.db.models.signals import post_save, pre_save
+from django.db.models.signals import post_save, pre_save, post_delete, pre_delete
 from django.dispatch import receiver
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
@@ -19,9 +20,11 @@ from modulo12.models import *
 from modulo12.forms import *
 from django.contrib.auth import login, logout, authenticate, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.models import User
+from cStringIO import StringIO
 
 
 ##########################################  LOGIN  #######################################################
+
 def loginView(request):
     mensaje=""
     if request.user.is_authenticated():
@@ -80,20 +83,29 @@ def docenteFasesView(request,id_e):
 def docenteCorreccionView(request,id_e,id_f):
     estudiante = MatEstudiantes.objects.get(ci=id_e)
     fase = MtgTabFases.objects.get(id_fase=id_f)
-    defTG = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
-    version = MtgTabVersionamiento.objects.get(id_trab_grado=defTG.id_trab_grado)
-    faseD = MtgTabFasesdesarrollo.objects.get(id_version=version.id_version, id_fase=fase.id_fase)
     correccionSetForm = inlineformset_factory(MtgTabFasesdesarrollo,MtgTabCorrecciones,extra=1,max_num=1)
+    try:
+        defTG = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
+        version = MtgTabVersionamiento.objects.get(id_trab_grado=defTG.id_trab_grado)
+        faseD = MtgTabFasesdesarrollo.objects.get(id_version=version.id_version, id_fase=fase.id_fase)
+        if request.method == "POST":
+            form = correccionSetForm(request.POST,instance=faseD,initial=[{'fecha':hoydia()}])
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect('/docente/estudiantes/%s/correccion/'%(id_e))
+        else:
+            form = correccionSetForm(instance=faseD,initial=[{'fecha':hoydia()}])
+        ctx = {"formulario":form,"id_e":estudiante,"id_f":fase}
+        return render_to_response("modulo12/DocenteCorreccion.html", ctx, RequestContext(request))
+    except:
+        error = "ERROR: NADA PARA CORREGIR"
+        url = "/docente/estudiantes/%s/correccion/"%(id_e)
+        ctx = {'error':error,"url":url}
+        return render_to_response('modulo12/Error.html',ctx,RequestContext(request))
 
-    if request.method == "POST":
-        form = correccionSetForm(request.POST,instance=faseD,initial=[{'fecha':hoydia()}])
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect('/docente/estudiantes/%s/correccion/'%(id_e))
-    else:
-        form = correccionSetForm(instance=faseD,initial=[{'fecha':hoydia()}])
-    ctx = {"formulario":form,"id_e":estudiante,"id_f":fase}
-    return render_to_response("modulo12/DocenteCorreccion.html", ctx, RequestContext(request))
+
+
+
 
 #######################################   ESTUDIANTES ##################################################
 
@@ -112,6 +124,7 @@ def definicionView(request, id_e, id_f):
     faseN = int(id_f)
     estudianteN = int(id_e)
     estudiante = MatEstudiantes.objects.get(ci=estudianteN)
+    formularioEst = estudianteForm()
     fase = MtgTabFases.objects.get(id_fase=id_f)
     lineamineto = MtgTabFases.objects.get(id_fase=id_f)
     defTrabFormSet = inlineformset_factory(MatEstudiantes, MtgTabDatgenTgrado,extra=1, max_num=1)
@@ -127,12 +140,12 @@ def definicionView(request, id_e, id_f):
 
         if existe:
             if request.method == "POST":
-                formSet = fase1Form(request.POST, instance=definicion)
+                formSet = fase1Form(request.POST)
                 if formSet.is_valid():
                     formSet.save()
                     return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
             else:
-                form = fase1Form(instance=definicion)
+                form = fase1Form()
                 ctx = {'formulario':form, "id_e":id_e, "id_f":fase, "fecha":version.fecha}
                 return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
         else:
@@ -143,7 +156,8 @@ def definicionView(request, id_e, id_f):
                     return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
             else:
                 formSet = defTrabFormSet(instance= estudiante)
-            ctx = {'formulario':formSet,"id_e":id_e,"id_f":fase}
+                formularioEst = estudianteForm()
+            ctx = {'formulario':formSet,'formEstudiante':formularioEst,"id_e":id_e,"id_f":fase}
             return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
 
     #FASES  > 1
@@ -212,64 +226,154 @@ def juradosView(request):
     return render_to_response('modulo12/jurados.html',ctx, RequestContext(request))
 
 
-
-###########################################  SENALES   #####################################################
-
+#######################   FASES       #########################################################
 @login_required
-def fasesView(request):
+def fasesAddView(request):
     if request.method == "POST":
         formulario = fasesForm(request.POST)
         if formulario.is_valid():
             formulario.save()
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/fases/lista/')
     else:
         formulario = fasesForm()
     ctx = {"formulario":formulario}
+    return render_to_response("modulo12/Fases_Add.html", ctx, RequestContext(request))
 
-    return render_to_response("modulo12/fases.html", ctx, RequestContext(request))
+def fasesEditView(request, id_f):
+    faseInstance = MtgTabFases.objects.get(id_fase=id_f)
+    if request.method == "POST":
+        formulario = fasesForm(request.POST,instance = faseInstance)
+        if formulario.is_valid():
+            formulario.save()
+            return HttpResponseRedirect('/fases/lista')
+    else:
+        formulario = fasesForm(instance = faseInstance)
+    ctx = {"formulario":formulario, 'id_f':id_f}
+    return render_to_response("modulo12/Fases_Add.html", ctx, RequestContext(request))
 
-def faseGuardada(sender, **kwargs):
+def fasesElimView(request,id_f):
+    faseInstance = MtgTabFases.objects.get(id_fase=id_f)
+    faseInstance.delete()
+    return HttpResponseRedirect('/fases/lista')
 
-    print("%s  %s %s"%(hoydia(),hoyhora()))
-
-
-###
-
-
-
-_thread_locals = local()
-
-
-def get_current_request():
-    """ returns the request object for this thead """
-    return getattr(_thread_locals, "request", None)
-
-
-def get_current_user():
-    """ returns the current user, if exist, otherwise returns None """
-    request = get_current_request()
-    if request:
-        return getattr(request, "User", None)
+def fasesView(request):
+    fases = MtgTabFases.objects.all().order_by('id_fase')
+    ctx = {'fases':fases}
+    return render_to_response('modulo12/Fases_List.html',ctx,RequestContext(request))
 
 
-class ThreadLocalMiddleware(object):
-    """ Simple middleware that adds the request object in thread local storage."""
-    def process_request(self, request):
-        _thread_locals.request = request
+#######################   AUDITORIA   #####################################################
+
+
+def auditoriaUsuariosView(request):
+    if str(request.user) == 'auditor':
+        formulario = LogUsuarios.objects.all().order_by('id_log_usuario')
+        ctx = {'formulario':formulario}
+        return render_to_response('modulo12/AuditoriaUsuarios.html',ctx, RequestContext(request))
+    else:
+        error = "ERROR: NECESITA PERMISOS"
+        url = "/accounts/login/"
+        ctx = {'error':error,"url":url}
+        return render_to_response('modulo12/Error.html',ctx,RequestContext(request))
+
+
+def auditoriaModelosView(request):
+    formulario = LogModels.objects.all().order_by('id_log_models')
+    ctx = {'formulario':formulario}
+    return render_to_response('modulo12/AuditoriaModelos.html',ctx, RequestContext(request))
+
+
+###########################################  SENALES   #####################################################
+
+# LOG  FASES
+
+@receiver(pre_save, sender=MtgTabFases,)
+def do_FasesPreSave_Log(sender, instance,update_fields, **kwargs):
+    op = instance
+    id = getattr(op,op.__class__._meta.fields[0].name)
+    i1 = ""
+    v1 = ""
+    n1 = ""
+    i2 = ""
+    v2 = ""
+    n2 = ""
+    try:
+        fields = op.__class__._meta.fields
+        objetoAnterior = MtgTabFases.objects.get(id_fase=id)
+        if objetoAnterior.descripcion_fase != getattr(op,fields[1].name):
+            i1 = "descripcion_fase:"
+            v1 =  objetoAnterior.descripcion_fase
+            n1 =  getattr(op,fields[1].name)
+        if objetoAnterior.lineamientos != getattr(op,op.__class__._meta.fields[2].name):
+            i2 = "lineamientos:"
+            v2 = objetoAnterior.lineamientos
+            n2 = getattr(op,fields[2].name)
+        logModel = LogModels()
+        logModel.id_log_usuario = "1"
+        logModel.id_model = id
+        logModel.nombre_modelo = "MtgTabFases"
+        logModel.accion = "modificado"
+        logModel.descripcion = ""
+        logModel.valor_nuevo = "[%s ( %s )][%s ( %s )]"%(i1,n1,i2,n2)
+        logModel.valor_antiguo = "[%s ( %s )][%s ( %s )]"%(i1,v1,i2,v2)
+        logModel.dia = hoydia()
+        logModel.hora = hoyhora()
+        logModel.save()
+    except:
+        print("?")
 
 
 @receiver(post_save, sender=MtgTabFases)
-def print_name(sender, instance, using, **kwargs):
+def do_Fases_Log(sender, instance, created,update_fields,raw, **kwargs):
     op = instance
-    # for f in op.__class__._meta.fields:
-    #    print getattr(op,f.name)
-    #
-    # print getattr(op,op.__class__._meta.fields[0].name)
+    idFase = getattr(op,op.__class__._meta.fields[0].name)
+    log_reg = {}
+    for f in op.__class__._meta.fields:
+        valor_nuevo=getattr(op,f.name)
+        log_reg[f.name]=valor_nuevo
+    logModel = LogModels()
+    logModel.id_model = str(idFase)
+    logModel.nombre_modelo = "MtgTabFases"
+    logModel.descripcion = op
+    logModel.dia = hoydia()
+    logModel.hora = hoyhora()
+    if created:
+        logModel.accion = "creado"
+        logModel.save()
+
+
+
+@receiver(pre_delete, sender=MtgTabFases)
+def do_FasesDelete_Log(sender, instance, **kwargs):
+    op = instance
+    log_reg = {}
+    for f in op.__class__._meta.fields:
+        valor_nuevo=getattr(op,f.name)
+        log_reg[f.name]=valor_nuevo
+    vers_id = getattr(op,op.__class__._meta.fields[0].name)
+    logModel = LogModels()
+    logModel.id_model = vers_id
+    logModel.nombre_modelo = "MtgTabFases"
+    logModel.accion = "borrado"
+    logModel.descripcion = op
+    logModel.valor_nuevo = ""
+    logModel.valor_antiguo = log_reg
+    logModel.dia = hoydia()
+    logModel.hora = hoyhora()
+    logModel.save()
+
+
+
+
 
 @receiver(post_save, sender=MtgTabDatgenTgrado)
-def do_Vers_Log(sender, instance, created, **kwargs):
+def do_Fase1_Log(sender, instance, created, **kwargs):
+    op = instance
+    log_reg = {}
+    for f in op.__class__._meta.fields:
+        valor_nuevo=getattr(op,f.name)
+        log_reg[f.name] = str(valor_nuevo)
     if created:
-        op = instance
         vers_id = getattr(op,op.__class__._meta.fields[0].name)
         TrabGrado = MtgTabDatgenTgrado.objects.get(id_trab_grado=vers_id)
         versInst = MtgTabVersionamiento()
@@ -277,21 +381,68 @@ def do_Vers_Log(sender, instance, created, **kwargs):
         versInst.fecha = hoydia()
         versInst.save()
 
+        logModel = LogModels()
+        logModel.nombre_modelo = "MtgTabDatgenTgrado"
+        logModel.accion = "modelo creado"
+        logModel.descripcion = op
+        logModel.valor_nuevo = log_reg
+        logModel.dia = hoydia()
+        logModel.hora = hoyhora()
+        logModel.save()
+    else:
+        logModel = LogModels()
+        logModel.nombre_modelo = "MtgTabDatgenTgrado"
+        logModel.accion = "modelo modificado"
+        logModel.descripcion = op
+        logModel.valor_nuevo = log_reg
+        logModel.dia = hoydia()
+        logModel.hora = hoyhora()
+        logModel.save()
 
 
 @receiver(post_save, sender=MtgTabVersionamiento)
-def do_Fases_Log(sender, instance, created, **kwargs):
+def do_Versionam_Log(sender, instance, created, **kwargs):
     if created:
         op = instance
         vers_id = getattr(op,op.__class__._meta.fields[0].name)
         versInstancia = MtgTabVersionamiento.objects.get(id_version=vers_id)
-        print versInstancia.fecha
         fases = MtgTabFases.objects.all()
         for f in fases:
             faseDesarrollo = MtgTabFasesdesarrollo()
             faseDesarrollo.id_version = versInstancia
             faseDesarrollo.id_fase = f
             faseDesarrollo.save()
+        logModel = LogModels()
+        logModel.nombre_modelo = "MtgTabVersionamiento"
+        logModel.accion = "modelo creado"
+        logModel.descripcion = op
+        logModel.valor_nuevo = op.__class__._meta.fields[0]
+        logModel.dia = hoydia()
+        logModel.hora = hoyhora()
+        logModel.save()
+
+@receiver(post_delete, sender=MtgTabDatgenTgrado)
+def do_Fase1Delete_Log(sender, instance, **kwargs):
+    op = instance
+    log_reg = {}
+    for f in op.__class__._meta.fields:
+        valor_nuevo=getattr(op,f.name)
+        log_reg[f.name] = str(valor_nuevo)
+
+    vers_id = getattr(op,op.__class__._meta.fields[0].name)
+    logModel = LogModels()
+    logModel.id_model = vers_id
+    logModel.nombre_modelo = "MtgTabDatgenTgrado"
+    logModel.accion = "modelo eliminado"
+    logModel.descripcion = op
+    logModel.valor_antiguo = log_reg
+    logModel.valor_nuevo = ""
+    logModel.dia = hoydia()
+    logModel.hora = hoyhora()
+    logModel.save()
+
+
+
 
 
 def do_loginIn(sender, user, request, **kwargs):
@@ -304,7 +455,7 @@ def do_loginIn(sender, user, request, **kwargs):
     logUsuario.primer_nombre = userInstance.first_name
     logUsuario.segundo_nombre = userInstance.last_name
     logUsuario.email = userInstance.email
-    logUsuario.estado_login = userInstance.is_active
+    logUsuario.estado_login = True
     logUsuario.tipo_login = "log_in"
     logUsuario.dia = hoydia()
     logUsuario.hora = hoyhora()
@@ -315,12 +466,12 @@ def do_loginIn(sender, user, request, **kwargs):
         ip = request.META.get('REMOTE_ADDR')
     logUsuario.ip = ip
     logUsuario.save()
+    request.session['0'] = 'bar'
 
 user_logged_in.connect(do_loginIn)
 
 def do_login_failed(sender, **kwargs):
     print(sender)
-
 
 user_login_failed.connect(do_login_failed)
 
@@ -342,13 +493,6 @@ def do_loginOut(sender, user, request, **kwargs):
     logUsuario.save()
 
 user_logged_out.connect(do_loginOut)
-
-
-
-#######################################  CAPTURA DE LA IP   ###############
-
-
-#######################$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
 def hoydia():
     ahora=datetime.datetime.now()
@@ -397,3 +541,6 @@ def signup(request):
         'form': form,
         }
     return render_to_response('modulo12/registro.html', data, context_instance=RequestContext(request))
+
+def prueba(request):
+    return  render_to_response('modulo12/pruebaq.html')

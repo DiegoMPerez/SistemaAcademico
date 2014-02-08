@@ -1,0 +1,29 @@
+{% extends 'modulo12/base.html' %}
+{% block content %}
+    <div class="panel panel-default">
+        <div class="panel-heading"><h3>Fases de desarrollo</h3></div>
+        <!-- Table -->
+    <br>
+        <p><a href="/fases/anadir" class="btn btn-primary">Añadir una neva fase</a></p>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Descripción</th>
+                <th>Lineamientos</th>
+
+            </tr>
+            </thead>
+            {% for f in fases %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><article style="text-justify: auto; font: petite-capss" >{{ f.descripcion_fase }}</article></td>
+                    <td>{{ f.lineamientos }}</td>
+                    <td><a href="/fases/fase{{ f.id_fase }}/editar" class="btn btn-primary">editar</a></td>
+                    <td><a href="/fases/fase{{ f.id_fase }}/eliminar" class="btn btn-warning">eliminar</a></td>
+                </tr>
+            {% endfor %}
+
+        </table>
+    </div>
+{% endblock %}

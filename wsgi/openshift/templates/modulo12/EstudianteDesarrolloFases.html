@@ -3,15 +3,14 @@
 {% block content %}
     <h1>{{ id_f.descripcion_fase }}</h1>
     <h2>LINEAMIENTOS</h2>
-
     <p class="">{{ lineamiento.lineamientos }}</p>
     <br/>
-
     <form action="." method="POST" role="form">
         <div class="form-group">
             {% csrf_token %}
             {{ formulario.as_p }}
-            <input type="submit" value="ENVIAR" />
+            <input type="submit" value="ENVIAR"  class="btn btn-primary"/>
+            <a href="/estudiantes/{{ id_e }}/desarrollo/" class="btn btn-primary">CANCELAR</a>
         </div>
     </form>
 {% endblock %}

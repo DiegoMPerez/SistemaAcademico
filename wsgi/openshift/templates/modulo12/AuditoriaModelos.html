@@ -1,0 +1,35 @@
+{% extends 'modulo12/base.html' %}
+
+{% block content %}
+    <h2 > AUDITORIA MODELOS </h2>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID_LOG_MODELS</th>
+            <th>ID_LOG_USUARIO</th>
+            <th>ID_MODEL</th>
+            <th>NOMBRE_MODELO</th>
+            <th>ACCION</th>
+            <th>DESCRIPCION</th>
+            <th>VALOR NUEVO</th>
+            <th>VALOR ANTIGUO</th>
+            <th>DIA</th>
+            <th>HORA</th>
+        </tr>
+        </thead>
+        {% for e in formulario %}
+            <tr>
+                <td>{{ e.id_log_models }}</td>
+                <td>{{ e.id_log_usuario }}</td>
+                <td>{{ e.id_model }}</td>
+                <td>{{ e.nombre_modelo }}</td>
+                <td>{{ e.accion }}</td>
+                <td>{{ e.descripcion }}</td>
+                <td>{{ e.valor_nuevo }}</td>
+                <td>{{ e.valor_antiguo }}</td>
+                <td>{{ e.dia }}</td>
+                <td>{{ e.hora }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}

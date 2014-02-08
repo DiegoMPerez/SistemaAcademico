@@ -42,7 +42,7 @@ class juradoForm(forms.ModelForm):
     class Meta:
         model = MtgTabJurados
 
-########################################### REGISTRO
+########################################### REGISTRO   ######################
 class SignUpForm(ModelForm):
     class Meta:
         model = User
@@ -50,3 +50,9 @@ class SignUpForm(ModelForm):
         widgets = {
             'password': forms.PasswordInput(),
         }
+
+
+
+class estudianteForm(forms.ModelForm):
+    class Meta:
+        model = MatEstudiantes

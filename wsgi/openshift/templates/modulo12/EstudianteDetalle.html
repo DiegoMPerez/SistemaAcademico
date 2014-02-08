@@ -8,11 +8,10 @@
             <p>ESTUDIENTE: {{ estudiante.apellido }} {{ estudiante.nombre }}</p>
         </div>
     </form>
-    {% for f in fases %}
-        <ul class="nav nav-pills">
-           <li> <a href="/estudiantes/{{ estudiante.ci }}/desarrollo/fase{{ f.id_fase }}/">{{ f.descripcion_fase }}</a></li>
-        </ul>
-
-    {% endfor %}
+    <table class="table span-8">
+    <tr>
+        {% for f in fases %}
+            <th> <a href="/estudiantes/{{ estudiante.ci }}/desarrollo/fase{{ f.id_fase }}/">{{ f.descripcion_fase }}</a></th>
+        {% endfor %}
+    <tr>
 {% endblock %}
-

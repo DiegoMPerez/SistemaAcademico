@@ -1,0 +1,43 @@
+{% extends 'modulo12/base.html' %}
+
+{% block content %}
+    <h2 > AUDITORIA USUARIOS</h2>
+    <table class="table">
+        <thead>
+        <tr>
+            <th>ID_LOG_USUARIO</th>
+            <th>ID_USUARIO</th>
+            <th>PASSWORD</th>
+            <th>NOMBRE_USUARIO</th>
+            <th>SUPER USUARIO</th>
+            <th>PRIMER NOMBRE</th>
+            <th>SEGUNDO NOMBRE</th>
+            <th>E-MAIL</th>
+            <th>ESTADO_LOGIN</th>
+            <th>TIPO_LOGIN</th>
+            <th>ACTIVO</th>
+            <th>DÍA</th>
+            <th>HORA</th>
+            <th>IP</th>
+        </tr>
+        </thead>
+        {% for e in formulario %}
+            <tr>
+                <td>{{ e.id_log_usuario }}</td>
+                <td>{{ e.id_usuario }}</td>
+                <td>{{ e.passw }}</td>
+                <td>{{ e.nombre_usuario }}</td>
+                <td>{{ e.es_super_usuario }}</td>
+                <td>{{ e.primer_nombre }}</td>
+                <td>{{ e.segundo_nombre }}</td>
+                <td>{{ e.email }}</td>
+                <td>{{ e.estado_login }}</td>
+                <td>{{ e.tipo_login }}</td>
+                <td>{{ e.activo }}</td>
+                <td>{{ e.dia }}</td>
+                <td>{{ e.hora }}</td>
+                <td>{{ e.ip }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+{% endblock %}
