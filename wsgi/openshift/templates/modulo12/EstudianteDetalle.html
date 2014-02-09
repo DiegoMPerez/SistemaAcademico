@@ -2,16 +2,19 @@
 {% block titulo %} Estudiante{% endblock %}
 
 {% block content %}
-    <form action="." method="POST" role="form">
         <div class="form-group">
             {% csrf_token %}
             <p>ESTUDIENTE: {{ estudiante.apellido }} {{ estudiante.nombre }}</p>
         </div>
-    </form>
+
     <table class="table span-8">
-    <tr>
-        {% for f in fases %}
-            <th> <a href="/estudiantes/{{ estudiante.ci }}/desarrollo/fase{{ f.id_fase }}/">{{ f.descripcion_fase }}</a></th>
-        {% endfor %}
-    <tr>
+        <tr>
+            {% for f in fases %}
+                <th> <a href="/estudiantes/{{ estudiante.ci }}/desarrollo/fase{{ f.id_fase }}/">{{ f.descripcion_fase }}</a></th>
+            {% endfor %}
+        <tr>
+    </table>
+    {% block contenido %}
+        {% endblock %}
+
 {% endblock %}

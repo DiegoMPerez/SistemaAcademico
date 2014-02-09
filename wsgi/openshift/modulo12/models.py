@@ -167,6 +167,8 @@ class MatEstudiantes(models.Model):
     estado = models.BooleanField(null=False, blank=True)
     class Meta:
         db_table = 'mat_estudiantes'
+    def __unicode__(self):
+        return self.ci
 
 class MtgTabCorrecciones(models.Model):
     id_correccion = models.AutoField(primary_key=True)

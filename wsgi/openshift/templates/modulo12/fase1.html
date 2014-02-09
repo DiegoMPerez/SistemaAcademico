@@ -1,13 +1,11 @@
-{% extends 'modulo12/base.html' %}
-{% block titulo %} Definición del Tema{% endblock %}
-{% block content %}
+{% extends 'modulo12/EstudianteDetalle.html' %}
+{% block contenido %}
     <h1>Definición del Tema</h1>
     <p>{{ fecha }}</p>
     <form action="." method="POST">
             {% csrf_token %}
-            {{ formEstudiante.as_p }}
             {{ formulario.as_p }}
             <input type="submit" value="ENVIAR" class="btn btn-primary"/>
-            <a href="/estudiantes/{{ id_e }}/desarrollo/" class="btn btn-primary">CANCELAR</a>
+            <a href="/estudiantes/{{ estudiante.ci }}/desarrollo/" class="btn btn-primary">CANCELAR</a>
     </form>
 {% endblock %}

@@ -7,12 +7,13 @@ urlpatterns = patterns('openshift.modulo12.views',
             url(r'^docente/estudiantes/$','docenteListaEstudiantesView', name='docenteListaEstudiantesView'),
             url(r'^docente/estudiantes/(?P<id_e>\d+)/correccion/$','docenteFasesView', name='docenteFasesView'),
             url(r'^docente/estudiantes/(?P<id_e>\d+)/correccion/fase(?P<id_f>\d+)/$','docenteCorreccionView', name='docenteCorreccionView'),
+            url(r'^docente/estudiantes/(?P<id_e>\d+)/defensa/$','defensaView', name='defensaView'),
 
             # Estudiantes con las fases de desarrollo
             url(r'^estudiantes/$','estudiantesView', name='estudiantesView'),
             url(r'^estudiantes/(?P<id_e>\d+)/desarrollo/$','estudianteView', name='estudianteView'),
             url(r'^estudiantes/(?P<id_e>\d+)/desarrollo/fase(?P<id_f>\d+)/$','definicionView', name='definicionView'),
-            url(r'^estudiantes/(?P<id_e>\d+)/defensa/$','defensaView', name='defensaView'),
+
 
             #LOGIN ****************************************************
             url(r'^accounts/login/$','loginView', name='loginView'),

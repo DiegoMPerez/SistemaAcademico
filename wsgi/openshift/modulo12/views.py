@@ -120,7 +120,9 @@ def estudianteView(request, id_e):
     ctx = {"estudiante":est, "fases":fases}
     return render_to_response('modulo12/EstudianteDetalle.html',ctx, RequestContext(request))
 
+
 def definicionView(request, id_e, id_f):
+    fases = MtgTabFases.objects.all().order_by('id_fase')
     faseN = int(id_f)
     estudianteN = int(id_e)
     estudiante = MatEstudiantes.objects.get(ci=estudianteN)
@@ -157,7 +159,7 @@ def definicionView(request, id_e, id_f):
             else:
                 formSet = defTrabFormSet(instance= estudiante)
                 formularioEst = estudianteForm()
-            ctx = {'formulario':formSet,'formEstudiante':formularioEst,"id_e":id_e,"id_f":fase}
+            ctx = {'formulario':formSet,'fases':fases,'formEstudiante':formularioEst,"estudiante":estudiante,"id_f":fase}
             return render_to_response("modulo12/fase1.html", ctx, RequestContext(request))
 
     #FASES  > 1
@@ -291,11 +293,14 @@ def auditoriaModelosView(request):
 
 ###########################################  SENALES   #####################################################
 
+def getUserActivo():
+    usuarioActivo = AuthUser.objects.get(login="True")
+    return usuarioActivo
+
 # LOG  FASES
 
 @receiver(pre_save, sender=MtgTabFases,)
 def do_FasesPreSave_Log(sender, instance,update_fields, **kwargs):
-    usuarioActivo = AuthUser.objects.get(login="True")
     op = instance
     id = getattr(op,op.__class__._meta.fields[0].name)
     i1 = ""
@@ -315,17 +320,17 @@ def do_FasesPreSave_Log(sender, instance,update_fields, **kwargs):
             i2 = "lineamientos:"
             v2 = objetoAnterior.lineamientos
             n2 = getattr(op,fields[2].name)
-            logModel = LogModels()
-            logModel.id_usuario = usuarioActivo
-            logModel.id_model = str(usuarioActivo.id)
-            logModel.nombre_modelo = "MtgTabFases"
-            logModel.accion = "modificado"
-            logModel.descripcion = ""
-            logModel.valor_nuevo = "[%s ( %s )][%s ( %s )]"%(i1,n1,i2,n2)
-            logModel.valor_antiguo = "[%s ( %s )][%s ( %s )]"%(i1,v1,i2,v2)
-            logModel.dia = hoydia()
-            logModel.hora = hoyhora()
-            logModel.save()
+        logModel = LogModels()
+        logModel.id_usuario = getUserActivo()
+        logModel.id_model = str(id)
+        logModel.nombre_modelo = "MtgTabFases"
+        logModel.accion = "modificado"
+        logModel.descripcion = ""
+        logModel.valor_nuevo = "[%s ( %s )][%s ( %s )]"%(i1,n1,i2,n2)
+        logModel.valor_antiguo = "[%s ( %s )][%s ( %s )]"%(i1,v1,i2,v2)
+        logModel.dia = hoydia()
+        logModel.hora = hoyhora()
+        logModel.save()
     except:
         print("?")
 
@@ -334,10 +339,6 @@ def do_FasesPreSave_Log(sender, instance,update_fields, **kwargs):
 def do_Fases_Log(sender, instance, created,update_fields,raw, **kwargs):
     op = instance
     idFase = getattr(op,op.__class__._meta.fields[0].name)
-    log_reg = {}
-    for f in op.__class__._meta.fields:
-        valor_nuevo=getattr(op,f.name)
-        log_reg[f.name]=valor_nuevo
     logModel = LogModels()
     logModel.id_model = str(idFase)
     logModel.nombre_modelo = "MtgTabFases"
@@ -357,9 +358,10 @@ def do_FasesDelete_Log(sender, instance, **kwargs):
     for f in op.__class__._meta.fields:
         valor_nuevo=getattr(op,f.name)
         log_reg[f.name]=valor_nuevo
-    vers_id = getattr(op,op.__class__._meta.fields[0].name)
+    id = getattr(op,op.__class__._meta.fields[0].name)
     logModel = LogModels()
-    logModel.id_model = vers_id
+    logModel.id_usuario = getUserActivo()
+    logModel.id_model = id
     logModel.nombre_modelo = "MtgTabFases"
     logModel.accion = "borrado"
     logModel.descripcion = op
@@ -370,41 +372,155 @@ def do_FasesDelete_Log(sender, instance, **kwargs):
     logModel.save()
 
 
-
-
-
 @receiver(post_save, sender=MtgTabDatgenTgrado)
-def do_Fase1_Log(sender, instance, created, **kwargs):
-    op = instance
-    log_reg = {}
-    for f in op.__class__._meta.fields:
-        valor_nuevo=getattr(op,f.name)
-        log_reg[f.name] = str(valor_nuevo)
+def do_DatGeSave_Log(sender, instance, created, **kwargs):
     if created:
-        vers_id = getattr(op,op.__class__._meta.fields[0].name)
-        TrabGrado = MtgTabDatgenTgrado.objects.get(id_trab_grado=vers_id)
+        op = instance
+        id = getattr(op,op.__class__._meta.fields[0].name)
+
+        TrabGrado = MtgTabDatgenTgrado.objects.get(id_trab_grado=id)
         versInst = MtgTabVersionamiento()
         versInst.id_trab_grado = TrabGrado
         versInst.fecha = hoydia()
         versInst.save()
 
         logModel = LogModels()
+        logModel.id_model = str(id)
+        logModel.id_usuario = getUserActivo()
         logModel.nombre_modelo = "MtgTabDatgenTgrado"
-        logModel.accion = "modelo creado"
         logModel.descripcion = op
-        logModel.valor_nuevo = log_reg
         logModel.dia = hoydia()
         logModel.hora = hoyhora()
+        logModel.accion = "creado"
         logModel.save()
-    else:
+
+
+@receiver(pre_save, sender=MtgTabDatgenTgrado)
+def do_DatGeEdit_Log(sender, instance, **kwargs):
+    op = instance
+    id = getattr(op,op.__class__._meta.fields[0].name)
+    i1 = ""
+    v1 = ""
+    n1 = ""
+    i3 = ""
+    v3 = ""
+    n3 = ""
+    i4 = ""
+    v4 = ""
+    n4 = ""
+    i5 = ""
+    v5 = ""
+    n5 = ""
+    i6 = ""
+    v6 = ""
+    n6 = ""
+    i7 = ""
+    v7 = ""
+    n7 = ""
+    i8 = ""
+    v8 = ""
+    n8 = ""
+    i9 = ""
+    v9 = ""
+    n9 = ""
+    i10 = ""
+    v10 = ""
+    n10 = ""
+    i11 = ""
+    v11 = ""
+    n11 = ""
+    i12 = ""
+    v12 = ""
+    n12 = ""
+    i13 = ""
+    v13 = ""
+    n13 = ""
+    try:
+        fields = op.__class__._meta.fields
+        objetoAnterior = MtgTabDatgenTgrado.objects.get(id_trab_grado=id)
+        if objetoAnterior.tema != getattr(op,fields[1].name):
+            i1 = "tema:"
+            v1 =  objetoAnterior.tema
+            n1 =  getattr(op,fields[1].name)
+        elif objetoAnterior.id_docente != getattr(op,op.__class__._meta.fields[3].name):
+            i3 = "id_docente:"
+            v3 = objetoAnterior.id_docente
+            n3 = getattr(op,fields[3].name)
+        elif objetoAnterior.area_investigacion != getattr(op,op.__class__._meta.fields[4].name):
+            i4 = "area_investigacion:"
+            v4 = objetoAnterior.area_investigacion
+            n4 = getattr(op,fields[4].name)
+        elif objetoAnterior.entidad_auspicia != getattr(op,op.__class__._meta.fields[5].name):
+            i5 = "entidad_auspicia:"
+            v5 = objetoAnterior.entidad_auspicia
+            n5 = getattr(op,fields[5].name)
+        elif objetoAnterior.direccion_autor != getattr(op,op.__class__._meta.fields[6].name):
+            i6 = "direccion_autor:"
+            v6 = objetoAnterior.direccion_autor
+            n6 = getattr(op,fields[6].name)
+        elif objetoAnterior.telefono_autor != getattr(op,op.__class__._meta.fields[7].name):
+            i7 = "telefono_autor:"
+            v7 = objetoAnterior.telefono_autor
+            n7 = getattr(op,fields[7].name)
+        elif objetoAnterior.correo_electronico != getattr(op,op.__class__._meta.fields[8].name):
+            i8 = "correo_electronico:"
+            v8 = objetoAnterior.correo_electronico
+            n8 = getattr(op,fields[8].name)
+        elif objetoAnterior.presupuesto != getattr(op,op.__class__._meta.fields[9].name):
+            i9 = "presupuesto:"
+            v9 = objetoAnterior.presupuesto
+            n9 = getattr(op,fields[9].name)
+        elif objetoAnterior.direccion_trabajo != getattr(op,op.__class__._meta.fields[10].name):
+            i10 = "direccion_trabajo:"
+            v10 = objetoAnterior.direccion_trabajo
+            n10 = getattr(op,fields[10].name)
+        elif objetoAnterior.telefono_trabajo != getattr(op,op.__class__._meta.fields[11].name):
+            i11 = "telefono_trabajo:"
+            v11 = objetoAnterior.telefono_trabajo
+            n11 = getattr(op,fields[11].name)
+        elif objetoAnterior.investigacion != getattr(op,op.__class__._meta.fields[12].name):
+            i12 = "investigacion:"
+            v12 = objetoAnterior.investigacion
+            n12 = getattr(op,fields[12].name)
+        elif objetoAnterior.director != getattr(op,op.__class__._meta.fields[13].name):
+            i13 = "director:"
+            v13 = objetoAnterior.director
+            n13 = getattr(op,fields[13].name)
         logModel = LogModels()
+        logModel.id_usuario = getUserActivo()
+        logModel.id_model = str(id)
         logModel.nombre_modelo = "MtgTabDatgenTgrado"
-        logModel.accion = "modelo modificado"
-        logModel.descripcion = op
-        logModel.valor_nuevo = log_reg
+        logModel.accion = "modificado"
+        logModel.descripcion = ""
+        logModel.valor_nuevo = "[%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )]"%(i1,n1,i3,n3,i4,n4,i5,n5,i6,n6,i7,n7,i8,n8,i9,n9,i10,n10,i11,n11,i12,n12,i13,n13)
+        logModel.valor_antiguo = "[%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )][%s ( %s )]"%(i1,v1,i3,v3,i4,v4,i5,v5,i6,v6,i7,v7,i8,v8,i9,v9,i10,v10,i11,v11,i12,v12,i13,v13)
         logModel.dia = hoydia()
         logModel.hora = hoyhora()
         logModel.save()
+    except:
+        print("?")
+
+
+@receiver(post_delete, sender=MtgTabDatgenTgrado)
+def do_Fase1Delete_Log(sender, instance, **kwargs):
+    op = instance
+    log_reg = {}
+    for f in op.__class__._meta.fields:
+        valor_nuevo=getattr(op,f.name)
+        log_reg[f.name] = str(valor_nuevo)
+
+    vers_id = getattr(op,op.__class__._meta.fields[0].name)
+    logModel = LogModels()
+    logModel.id_model = vers_id
+    logModel.id_usuario = getUserActivo()
+    logModel.nombre_modelo = "MtgTabDatgenTgrado"
+    logModel.accion = "modelo eliminado"
+    logModel.descripcion = op
+    logModel.valor_antiguo = log_reg
+    logModel.valor_nuevo = ""
+    logModel.dia = hoydia()
+    logModel.hora = hoyhora()
+    logModel.save()
 
 
 @receiver(post_save, sender=MtgTabVersionamiento)
@@ -419,35 +535,6 @@ def do_Versionam_Log(sender, instance, created, **kwargs):
             faseDesarrollo.id_version = versInstancia
             faseDesarrollo.id_fase = f
             faseDesarrollo.save()
-        logModel = LogModels()
-        logModel.nombre_modelo = "MtgTabVersionamiento"
-        logModel.accion = "modelo creado"
-        logModel.descripcion = op
-        logModel.valor_nuevo = op.__class__._meta.fields[0]
-        logModel.dia = hoydia()
-        logModel.hora = hoyhora()
-        logModel.save()
-
-@receiver(post_delete, sender=MtgTabDatgenTgrado)
-def do_Fase1Delete_Log(sender, instance, **kwargs):
-    op = instance
-    log_reg = {}
-    for f in op.__class__._meta.fields:
-        valor_nuevo=getattr(op,f.name)
-        log_reg[f.name] = str(valor_nuevo)
-
-    vers_id = getattr(op,op.__class__._meta.fields[0].name)
-    logModel = LogModels()
-    logModel.id_model = vers_id
-    logModel.nombre_modelo = "MtgTabDatgenTgrado"
-    logModel.accion = "modelo eliminado"
-    logModel.descripcion = op
-    logModel.valor_antiguo = log_reg
-    logModel.valor_nuevo = ""
-    logModel.dia = hoydia()
-    logModel.hora = hoyhora()
-    logModel.save()
-
 
 def do_loginIn(sender, user, request, **kwargs):
     userInstance = AuthUser.objects.get(username=user)
