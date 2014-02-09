@@ -1,0 +1,9 @@
+{% block content %}
+    <form action="." method="POST">
+        {% csrf_token %}
+        {{  padre.as_p  }}
+        {{ hijo.as_p }}
+    <input type="submit" value="Guardar" class="btn btn-primary"/>
+    </form>
+
+{% endblock %}

@@ -105,7 +105,7 @@ def docenteCorreccionView(request,id_e,id_f):
                 form.save()
                 return HttpResponseRedirect('/docente/estudiantes/%s/correccion/'%(estudiante.ci))
         else:
-            form = correccionSetForm(instance=faseD,initial=[{'fecha':hoydia()}])
+            form = correccionSetForm(initial=[{'fecha':hoydia()}])
         ctx = {"formulario":form,"estudiante":estudiante,"id_f":fase,"fases":fases,'desarrollo':desarrollo,'TEMA':defTG}
         return render_to_response("modulo12/DocenteCorreccion.html", ctx, RequestContext(request))
     except:
