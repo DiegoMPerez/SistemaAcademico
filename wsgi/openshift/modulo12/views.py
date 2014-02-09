@@ -264,24 +264,30 @@ def fasesView(request):
 
 #######################   AUDITORIA   #####################################################
 
-
 def auditoriaUsuariosView(request):
     if str(request.user) == 'auditor':
         formulario = LogUsuarios.objects.all().order_by('id_log_usuario')
         ctx = {'formulario':formulario}
         return render_to_response('modulo12/AuditoriaUsuarios.html',ctx, RequestContext(request))
     else:
-        error = "ERROR: NECESITA PERMISOS"
+        error = "ERROR: NECESITA SER USUARIO AUDITOR"
         url = "/accounts/login/"
-        ctx = {'error':error,"url":url}
-        return render_to_response('modulo12/Error.html',ctx,RequestContext(request))
+        return ERROR(request,error,url)
 
+
+def ERROR (request,error,url):
+    ctx = {'error':error,"url":url}
+    return render_to_response('modulo12/Error.html',ctx,RequestContext(request))
 
 def auditoriaModelosView(request):
-    formulario = LogModels.objects.all().order_by('id_log_models')
-    ctx = {'formulario':formulario}
-    return render_to_response('modulo12/AuditoriaModelos.html',ctx, RequestContext(request))
-
+    if str(request.user) == 'auditor':
+        formulario = LogModels.objects.all().order_by('id_log_models')
+        ctx = {'formulario':formulario}
+        return render_to_response('modulo12/AuditoriaModelos.html',ctx, RequestContext(request))
+    else:
+        error = "ERROR: NECESITA SER USUARIO AUDITOR"
+        url = "/accounts/login/"
+        return ERROR(request,error,url)
 
 ###########################################  SENALES   #####################################################
 
@@ -289,6 +295,7 @@ def auditoriaModelosView(request):
 
 @receiver(pre_save, sender=MtgTabFases,)
 def do_FasesPreSave_Log(sender, instance,update_fields, **kwargs):
+    usuarioActivo = AuthUser.objects.get(login="True")
     op = instance
     id = getattr(op,op.__class__._meta.fields[0].name)
     i1 = ""
@@ -304,21 +311,21 @@ def do_FasesPreSave_Log(sender, instance,update_fields, **kwargs):
             i1 = "descripcion_fase:"
             v1 =  objetoAnterior.descripcion_fase
             n1 =  getattr(op,fields[1].name)
-        if objetoAnterior.lineamientos != getattr(op,op.__class__._meta.fields[2].name):
+        elif objetoAnterior.lineamientos != getattr(op,op.__class__._meta.fields[2].name):
             i2 = "lineamientos:"
             v2 = objetoAnterior.lineamientos
             n2 = getattr(op,fields[2].name)
-        logModel = LogModels()
-        logModel.id_log_usuario = "1"
-        logModel.id_model = id
-        logModel.nombre_modelo = "MtgTabFases"
-        logModel.accion = "modificado"
-        logModel.descripcion = ""
-        logModel.valor_nuevo = "[%s ( %s )][%s ( %s )]"%(i1,n1,i2,n2)
-        logModel.valor_antiguo = "[%s ( %s )][%s ( %s )]"%(i1,v1,i2,v2)
-        logModel.dia = hoydia()
-        logModel.hora = hoyhora()
-        logModel.save()
+            logModel = LogModels()
+            logModel.id_usuario = usuarioActivo
+            logModel.id_model = str(usuarioActivo.id)
+            logModel.nombre_modelo = "MtgTabFases"
+            logModel.accion = "modificado"
+            logModel.descripcion = ""
+            logModel.valor_nuevo = "[%s ( %s )][%s ( %s )]"%(i1,n1,i2,n2)
+            logModel.valor_antiguo = "[%s ( %s )][%s ( %s )]"%(i1,v1,i2,v2)
+            logModel.dia = hoydia()
+            logModel.hora = hoyhora()
+            logModel.save()
     except:
         print("?")
 
@@ -442,9 +449,6 @@ def do_Fase1Delete_Log(sender, instance, **kwargs):
     logModel.save()
 
 
-
-
-
 def do_loginIn(sender, user, request, **kwargs):
     userInstance = AuthUser.objects.get(username=user)
     logUsuario = LogUsuarios()
@@ -467,6 +471,9 @@ def do_loginIn(sender, user, request, **kwargs):
     logUsuario.ip = ip
     logUsuario.save()
     request.session['0'] = 'bar'
+    usuario = AuthUser.objects.get(id=userInstance.id)
+    usuario.login = True
+    usuario.save()
 
 user_logged_in.connect(do_loginIn)
 
@@ -491,6 +498,9 @@ def do_loginOut(sender, user, request, **kwargs):
     logUsuario.dia = hoydia()
     logUsuario.hora = hoyhora()
     logUsuario.save()
+    usuario = AuthUser.objects.get(id=userInstance.id)
+    usuario.login = False
+    usuario.save()
 
 user_logged_out.connect(do_loginOut)
 

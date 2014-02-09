@@ -45,6 +45,7 @@ class AuthUser(models.Model):
     is_staff = models.BooleanField()
     is_active = models.BooleanField()
     date_joined = models.DateTimeField()
+    login = models.CharField(max_length=5)
     class Meta:
         db_table = 'auth_user'
 
@@ -126,7 +127,7 @@ class Docentes(models.Model):
 
 class LogModels(models.Model):
     id_log_models = models.AutoField(primary_key=True)
-    id_log_usuario = models.IntegerField(default=1)
+    id_usuario = models.ForeignKey(AuthUser, db_column='id_usuario')
     id_model = models.CharField(max_length=10)
     nombre_modelo = models.CharField(max_length=50)
     accion = models.CharField(max_length=20)

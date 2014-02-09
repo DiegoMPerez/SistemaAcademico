@@ -24,10 +24,8 @@
             <a class="navbar-brand" href="{% url "main" %}">Inicio</a>
             <a class="navbar-brand" href="{% url "estudiantesView" %}">Estudiantes</a>
             <a class="navbar-brand" href="{% url "docenteListaEstudiantesView" %}">Docentes</a>
-            {% if user in 'diego' %}
-                <a class="navbar-brand" href="{% url "auditoriaUsuariosView" %}">AuditoriaU</a>
-                <a class="navbar-brand" href="{% url "auditoriaModelosView" %}">AuditoriaM</a>
-            {% endif %}
+            <a class="navbar-brand" href="{% url "auditoriaUsuariosView" %}">AuditoriaU</a>
+            <a class="navbar-brand" href="{% url "auditoriaModelosView" %}">AuditoriaM</a>
             <a class="navbar-brand" href="{% url "fasesView" %}">Fases</a>
             <a class="navbar-brand " href="#">**</a>
             <a class="navbar-brand" href="{% url "logoutView" %}">cerrar < {{ user }} ></a>
