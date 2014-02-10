@@ -1,6 +1,6 @@
-{% extends 'modulo12/base.html' %}
+{% extends 'modulo12/EstudianteDetalle.html' %}
 {% block titulo %} {% endblock %}
-{% block content %}
+{% block contenido %}
     <h1>{{ id_f.descripcion_fase }}</h1>
     <h2>LINEAMIENTOS</h2>
     <p class="">{{ lineamiento.lineamientos }}</p>
@@ -10,7 +10,7 @@
             {% csrf_token %}
             {{ formulario.as_p }}
             <input type="submit" value="ENVIAR"  class="btn btn-primary"/>
-            <a href="/estudiantes/{{ id_e }}/desarrollo/" class="btn btn-primary">CANCELAR</a>
+            <a href="/estudiantes/{{ estudiante.ci }}/desarrollo/" class="btn btn-primary">CANCELAR</a>
         </div>
     </form>
 {% endblock %}

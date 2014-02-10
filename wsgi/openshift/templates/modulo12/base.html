@@ -14,33 +14,31 @@
 
 
 <body>
-<nav class="navbar navbar-inverse" role="navigation">
-    <!-- Brand and toggle get grouped for better mobile display -->
-    <div class="navbar-header">
-        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
-        </button>
-        <a class="navbar-brand " href="{% url "acercaDe_View" %}">**</a>
-        {% if user.is_authenticated %}
-            <a class="navbar-brand" href="{% url "main" %}">Inicio</a>
-            <a class="navbar-brand" href="{% url "estudiantesView" %}">Estudiantes</a>
-            <a class="navbar-brand" href="{% url "docenteListaEstudiantesView" %}">Docentes</a>
-            <a class="navbar-brand" href="{% url "auditoriaUsuariosView" %}">AuditoriaU</a>
-            <a class="navbar-brand" href="{% url "auditoriaModelosView" %}">AuditoriaM</a>
-            <a class="navbar-brand" href="{% url "fasesView" %}">Fases</a>
-            <a class="navbar-brand " href="#">**</a>
-            <a class="navbar-brand" href="{% url "logoutView" %}">cerrar < {{ user }} ></a>
-        {% else %}
-            <a class="navbar-brand" href="{% url "loginView" %}">iniciar</a>
-        {% endif %}
-    </div>
-</nav>
-
-
 <div class="container">
-    <div class="well">
-        {% block content %}{% endblock %}
-        {% bootstrap_javascript jquery=True %}{% bootstrap_javascript jquery=True %}
-    </div>
+        <nav class="navbar navbar-inverse" role="navigation">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                </button>
+                <a class="navbar-brand " href="{% url "acercaDe_View" %}">**</a>
+                {% if user.is_authenticated %}
+                    <a class="navbar-brand" href="{% url "main" %}">Inicio</a>
+                    <a class="navbar-brand" href="{% url "estudiantesView" %}">Estudiantes</a>
+                    <a class="navbar-brand" href="{% url "docenteListaEstudiantesView" %}">Docentes</a>
+                    <a class="navbar-brand" href="{% url "auditoriaUsuariosView" %}">AuditoriaU</a>
+                    <a class="navbar-brand" href="{% url "auditoriaModelosView" %}">AuditoriaM</a>
+                    <a class="navbar-brand" href="{% url "fasesView" %}">Fases</a>
+                    <a class="navbar-brand " href="#">**</a>
+                    <a class="navbar-brand" href="{% url "logoutView" %}">cerrar < {{ user }} ></a>
+                {% else %}
+                    <a class="navbar-brand" href="{% url "loginView" %}">iniciar</a>
+                {% endif %}
+            </div>
+        </nav>
+</div>
+<div class="container">
+            {% block content %}{% endblock %}
+            {% bootstrap_javascript jquery=True %}{% bootstrap_javascript jquery=True %}
 </div>
 </body>
 </html>

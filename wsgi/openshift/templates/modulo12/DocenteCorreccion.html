@@ -1,9 +1,19 @@
-{% extends 'modulo12/base.html' %}
-{% block titulo %} correccion{% endblock %}
-{% block content %}
-    <h1>{{ id_f.descripcion_fase }}</h1>
-    <h1>{{ id_e.ci }}</h1>
- <form action="." method="POST" role="form">
+{% extends 'modulo12/DocenteEstudianteDetalle.html' %}
+{% block titulo %} correccion {% endblock %}
+{% block contenido %}
+    <h3>{{ estudiante.apellido }} {{ estudiante.nombre }} - {{ estudiante.ci }}</h3>
+    <h3>Tema de Trabajo de Grado: {{ TEMA.tema }}</h3>
+    <h3>Definición de: {{ id_f.descripcion_fase }}</h3>
+
+    <div class="well">
+        <p>Fecha de Desarrollo:   {{ desarrollo.fecha_desarrollo }}</p>
+        <p>DESARROLLO: </p>
+        <div class="alert alert-info">
+            <article> {{ desarrollo.desarrollo }} </article>
+            <article> {{ TEMA.tema }} </article>
+        </div>
+    </div>
+    <form action="." method="POST" role="form">
         <div class="form-group">
             {% csrf_token %}
             {{ formulario.as_p }}

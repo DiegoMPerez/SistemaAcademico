@@ -2,6 +2,9 @@
 {% block contenido %}
     <h1>Definición del Tema</h1>
     <p>{{ fecha }}</p>
+    <h4>LINEAMIENTOS</h4>
+    <article>{{ id_f.lineamientos }}</article>
+    <br/>
     <form action="." method="POST">
             {% csrf_token %}
             {{ formulario.as_p }}

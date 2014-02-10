@@ -63,6 +63,9 @@ def acercaDe_View(request):
 
 ##########################  DOCENTE  #####################################################################
 
+def getFases():
+    return MtgTabFases.objects.all().order_by('id_fase')
+
 def docenteListaEstudiantesView(request):
     listaEstudiantes = MatEstudiantes.objects.all();
     ctx = {'estudiantes':listaEstudiantes}
@@ -71,7 +74,7 @@ def docenteListaEstudiantesView(request):
 def docenteFasesView(request,id_e):
     try:
         est = MatEstudiantes.objects.get(ci=id_e)
-        fases = MtgTabFases.objects.all()
+        fases = getFases()
         ctx = {"estudiante":est, "fases":fases}
         return render_to_response('modulo12/DocenteEstudianteDetalle.html',ctx, RequestContext(request))
     except:
@@ -83,23 +86,31 @@ def docenteFasesView(request,id_e):
 def docenteCorreccionView(request,id_e,id_f):
     estudiante = MatEstudiantes.objects.get(ci=id_e)
     fase = MtgTabFases.objects.get(id_fase=id_f)
+    fases = getFases()
     correccionSetForm = inlineformset_factory(MtgTabFasesdesarrollo,MtgTabCorrecciones,extra=1,max_num=1)
+    desarrollo = ""
     try:
         defTG = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
         version = MtgTabVersionamiento.objects.get(id_trab_grado=defTG.id_trab_grado)
         faseD = MtgTabFasesdesarrollo.objects.get(id_version=version.id_version, id_fase=fase.id_fase)
+        if id_f != '1':
+            defTG = ""
+            desarrollo = MtgTabDesarrollodefases.objects.get(id_fases_desarrollo=faseD.id_fases_desarrollo)
+            if desarrollo.enviar_a_corregir is False:
+                raise
         if request.method == "POST":
             form = correccionSetForm(request.POST,instance=faseD,initial=[{'fecha':hoydia()}])
             if form.is_valid():
                 form.save()
-                return HttpResponseRedirect('/docente/estudiantes/%s/correccion/'%(id_e))
+                form.save()
+                return HttpResponseRedirect('/docente/estudiantes/%s/correccion/'%(estudiante.ci))
         else:
             form = correccionSetForm(instance=faseD,initial=[{'fecha':hoydia()}])
-        ctx = {"formulario":form,"id_e":estudiante,"id_f":fase}
+        ctx = {"formulario":form,"estudiante":estudiante,"id_f":fase,"fases":fases,'desarrollo':desarrollo,'TEMA':defTG}
         return render_to_response("modulo12/DocenteCorreccion.html", ctx, RequestContext(request))
     except:
         error = "ERROR: NADA PARA CORREGIR"
-        url = "/docente/estudiantes/%s/correccion/"%(id_e)
+        url = "/docente/estudiantes/%s/correccion/"%(estudiante.ci)
         ctx = {'error':error,"url":url}
         return render_to_response('modulo12/Error.html',ctx,RequestContext(request))
 
@@ -164,7 +175,7 @@ def definicionView(request, id_e, id_f):
 
     #FASES  > 1
 
-    elif faseN > 1 and faseN < 13:
+    elif faseN > 1 :
         desarrolloSetForm = inlineformset_factory(MtgTabFasesdesarrollo,MtgTabDesarrollodefases,extra=1, max_num=1)
         try:
             definicion = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
@@ -183,10 +194,11 @@ def definicionView(request, id_e, id_f):
                 return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
         else:
             setForm = desarrolloSetForm(instance= fasesDesarrollo, initial=[{'fecha_desarrollo':hoydia()}])
-        ctx = {'formulario':setForm,"id_e":id_e,"id_f":fase,"lineamiento":lineamineto}
+        ctx = {'formulario':setForm,"id_e":id_e,"id_f":fase,"lineamiento":lineamineto,"id_f":fase, 'fases':fases,"estudiante":estudiante}
         return render_to_response("modulo12/EstudianteDesarrolloFases.html", ctx,RequestContext(request))
     else:
         return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
+
 
 
 
@@ -341,6 +353,7 @@ def do_Fases_Log(sender, instance, created,update_fields,raw, **kwargs):
     idFase = getattr(op,op.__class__._meta.fields[0].name)
     logModel = LogModels()
     logModel.id_model = str(idFase)
+    logModel.id_usuario = getUserActivo()
     logModel.nombre_modelo = "MtgTabFases"
     logModel.descripcion = op
     logModel.dia = hoydia()
@@ -507,7 +520,7 @@ def do_Fase1Delete_Log(sender, instance, **kwargs):
     log_reg = {}
     for f in op.__class__._meta.fields:
         valor_nuevo=getattr(op,f.name)
-        log_reg[f.name] = str(valor_nuevo)
+        log_reg[f.name] = valor_nuevo
 
     vers_id = getattr(op,op.__class__._meta.fields[0].name)
     logModel = LogModels()
