@@ -40,5 +40,11 @@ urlpatterns = patterns('openshift.modulo12.views',
             url(r'^$','main', name='main'),
             url(r'^pruebaq/$','prueba', name='prueba'),
 
+            #$$  MAESTRO
+            url(r'^maestro/$','padreView', name='padreView'),
+
+
+
+
 )
 

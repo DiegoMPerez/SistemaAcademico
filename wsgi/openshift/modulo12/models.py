@@ -249,3 +249,15 @@ class MtgTabVersionamiento(models.Model):
     class Meta:
         db_table = 'mtg_tab_versionamiento'
 
+class Padres(models.Model):
+    id_padre = models.AutoField(primary_key=True)
+    nombre = models.CharField(max_length=40)
+    class Meta:
+        db_table = 'padres'
+
+class Hijos(models.Model):
+    id_hijo = models.AutoField(primary_key=True)
+    id_padre = models.ForeignKey('Padres', db_column='id_padre')
+    nombre = models.CharField(max_length=20)
+    class Meta:
+        db_table = 'hijos'

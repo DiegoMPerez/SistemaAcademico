@@ -56,3 +56,13 @@ class SignUpForm(ModelForm):
 class estudianteForm(forms.ModelForm):
     class Meta:
         model = MatEstudiantes
+
+
+
+class PadreForm(forms.ModelForm):
+    class Meta:
+        model = Padres
+
+class HijoForm(forms.ModelForm):
+    class Meta:
+        model = Hijos

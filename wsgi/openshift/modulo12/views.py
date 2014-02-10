@@ -652,5 +652,20 @@ def signup(request):
         }
     return render_to_response('modulo12/registro.html', data, context_instance=RequestContext(request))
 
-def prueba(request):
-    return  render_to_response('modulo12/pruebaq.html')
+
+
+
+#############################         MAESTRO              #################
+
+
+def padreView(request):
+    padre = Padres.objects.get(id_padre='1')
+    maestroSet = inlineformset_factory(Padres,Hijos, max_num=1)
+    if request.method == 'POST':
+        hijoFormSet = maestroSet(request.POST,instance=padre)
+        if hijoFormSet.is_valid():
+            hijoFormSet.save();
+    else:
+        hijoFormSet = maestroSet()
+    ctx = { 'hijo':hijoFormSet}
+    return render_to_response('modulo12/maestro.html',ctx,RequestContext(request))
