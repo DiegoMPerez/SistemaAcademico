@@ -11,8 +11,6 @@
     {# Display a form #}
     <title>{% block titulo%} Título  {% endblock %}</title>
 </head>
-
-
 <body>
 <div class="container">
         <nav class="navbar navbar-inverse" role="navigation">
@@ -25,8 +23,10 @@
                     <a class="navbar-brand" href="{% url "main" %}">Inicio</a>
                     <a class="navbar-brand" href="{% url "estudiantesView" %}">Estudiantes</a>
                     <a class="navbar-brand" href="{% url "docenteListaEstudiantesView" %}">Docentes</a>
+                    {% if user.username == 'auditor' %}
                     <a class="navbar-brand" href="{% url "auditoriaUsuariosView" %}">AuditoriaU</a>
                     <a class="navbar-brand" href="{% url "auditoriaModelosView" %}">AuditoriaM</a>
+                        {% endif %}
                     <a class="navbar-brand" href="{% url "fasesView" %}">Fases</a>
                     <a class="navbar-brand " href="#">**</a>
                     <a class="navbar-brand" href="{% url "logoutView" %}">cerrar < {{ user }} ></a>
@@ -37,7 +37,8 @@
         </nav>
 </div>
 <div class="container">
-            {% block content %}{% endblock %}
+            {% block content %}
+            {% endblock %}
             {% bootstrap_javascript jquery=True %}{% bootstrap_javascript jquery=True %}
 </div>
 </body>

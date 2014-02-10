@@ -42,6 +42,8 @@ urlpatterns = patterns('openshift.modulo12.views',
             #$$  MAESTRO
             url(r'^maestro/$','padreView', name='padreView'),
 
+            url(r'^reporte/(?P<ci>\d+)$','completoView', name='completoView'),
+
 
 
 

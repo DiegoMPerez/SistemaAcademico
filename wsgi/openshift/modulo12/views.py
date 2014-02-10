@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 # Create your views here.
 from _threading_local import local
+import cgi
+from django.template.loader import render_to_string
+import ho.pisa as pisa
 from imaplib import _Authenticator
 import datetime
 import user
@@ -17,11 +20,12 @@ from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 from pyanaconda import users
+from reportlab.pdfgen import canvas
 from modulo12.models import *
 from modulo12.forms import *
 from django.contrib.auth import login, logout, authenticate, user_logged_in, user_logged_out, user_login_failed
 from django.contrib.auth.models import User
-from cStringIO import StringIO
+import cStringIO as StringIO
 
 
 ##########################################  LOGIN  #######################################################
@@ -176,7 +180,7 @@ def definicionView(request, id_e, id_f):
 
     #FASES  > 1
 
-    elif faseN > 1 :
+    elif faseN > 1:
         desarrolloSetForm = inlineformset_factory(MtgTabFasesdesarrollo,MtgTabDesarrollodefases,extra=1, max_num=1)
         try:
             definicion = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
@@ -201,10 +205,14 @@ def definicionView(request, id_e, id_f):
         if request.method == "POST":
             setForm = desarrolloSetForm(request.POST,instance=fasesDesarrollo, initial=[{'fecha_desarrollo':hoydia()}])
             if setForm.is_valid():
+                #verifica si ha sido modificado
                 if request.POST.get('mtgtabdesarrollodefases_set-0-desarrollo') != desarrollo.desarrollo:
                     correccion.enviar_correccion = False
-                    correccion.save()
                     setForm.save()
+                    try:
+                        correccion.save()
+                    except:
+                        print "no hay correccion"
                 return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
         else:
             setForm = desarrolloSetForm(initial=[{'fecha_desarrollo':hoydia(),'desarrollo':desarrollo.desarrollo}])
@@ -220,25 +228,19 @@ def definicionView(request, id_e, id_f):
 
 def defensaView(request, id_e):
     defensaSetForm = inlineformset_factory(MtgTabVersionamiento,MtgTabDefensa,extra=1, max_num=1)
-    try:
-        estudiante = MatEstudiantes.objects.get(ci=id_e)
-        defTG = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
-        version = MtgTabVersionamiento.objects.get(id_trab_grado=defTG.id_trab_grado)
-        print(version.id_version)
-    except:
-        error = "ERROR: NO EXISTE EL ESTUDIANTE"
-        url = "/estudiantes/"
-        ctx = {'error':error,"url":url}
-        return render_to_response('modulo12/Error.html',ctx,RequestContext(request))
+    estudiante = MatEstudiantes.objects.get(ci=id_e)
+    defTG = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
+    version = MtgTabVersionamiento.objects.get(id_trab_grado=defTG.id_trab_grado)
+    print(version.id_version)
     if request.method == "POST":
         form = defensaSetForm(request.POST, instance=version,initial=[{'fecha_defensa':hoydia()}])
         if form.is_valid():
             form.save()
-            return HttpResponseRedirect('/')
+            return HttpResponseRedirect('/docente/estudiantes/')
     else:
         form = defensaSetForm(instance=version,initial=[{'fecha_defensa':hoydia()}])
     ctx = {"formulario":form, "id_e":estudiante}
-    return render_to_response("modulo12/defensa.html", ctx, RequestContext(request))
+    return render_to_response("modulo12/DocenteDefensa.html", ctx, RequestContext(request))
 
 
 
@@ -683,3 +685,33 @@ def padreView(request):
         hijoFormSet = maestroSet()
     ctx = { 'hijo':hijoFormSet}
     return render_to_response('modulo12/maestro.html',ctx,RequestContext(request))
+
+
+############################   generar PDF    #####################################
+
+
+def hello_pdf(request):
+# Se crea el objeto HttpResponse con los headers PDF apropiados.
+
+    response=HttpResponse(mimetype='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename=hello.pdf'
+    p = canvas.Canvas(response)
+    p.drawString(100, 100, "Hello world.")
+    p.showPage()
+    p.save()
+    return response
+
+def generar_pdf(html):
+    result=StringIO.StringIO()
+    pdf=pisa.pisaDocument(StringIO.StringIO(html.encode("UTF-8")), result)
+    if not pdf.err:
+        return HttpResponse (result.getvalue(),mimetype='aplication/pdf')
+    return HttpResponse('Error a generar pdf: %s' % cgi.escape(html))
+
+
+def completoView(request, ci):
+    estudiante = MatEstudiantes.objects.get(ci=ci)
+    fase1 = MtgTabDatgenTgrado.objects.get(id_estudiante=estudiante.id_estudiante)
+    faseF = fase1Form(instance=fase1)
+    html=render_to_string('modulo12/reporte.html',{'pagesize': 'A4', 'fase1': faseF}, context_instance=RequestContext(request))
+    return generar_pdf(html)

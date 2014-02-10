@@ -203,9 +203,9 @@ class MtgTabDefensa(models.Model):
     id_jurado = models.ForeignKey('MtgTabJurados', db_column='id_jurado')
     id_version = models.ForeignKey('MtgTabVersionamiento', db_column='id_version')
     fecha_defensa = models.DateField(null=True, blank=True)
-    aprobacion = models.CharField(max_length=5, blank=True)
-    correccion = models.CharField(max_length=1000, blank=True)
-    resolucion = models.CharField(max_length=10000, blank=True)
+    aprobacion = models.BooleanField(max_length=5, blank=True,default=False)
+    correccion = models.TextField(max_length=1000, blank=True)
+    resolucion = models.TextField(max_length=10000, blank=True)
     class Meta:
         db_table = 'mtg_tab_defensa'
 
@@ -241,6 +241,8 @@ class MtgTabJurados(models.Model):
     secretario_abogado = models.CharField(max_length=100, blank=True)
     class Meta:
         db_table = 'mtg_tab_jurados'
+    def __unicode__(self):
+        return "%s - %s, %s, %s"%(self.id_jurado,self.jurado1, self.jurado2, self.jurado3)
 
 class MtgTabVersionamiento(models.Model):
     id_version = models.AutoField(primary_key=True)
