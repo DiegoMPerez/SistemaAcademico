@@ -176,7 +176,7 @@ class MtgTabCorrecciones(models.Model):
     fecha = models.DateField()
     correccion = models.TextField(max_length=2000, blank=True)
     correjido_por = models.CharField(max_length=100, blank=True)
-    enviar_correccion = models.BooleanField(default=False)
+    enviar_correccion = models.BooleanField(default=True)
     class Meta:
         db_table = 'mtg_tab_correcciones'
 
@@ -214,7 +214,7 @@ class MtgTabDesarrollodefases(models.Model):
     id_fases_desarrollo = models.ForeignKey('MtgTabFasesdesarrollo', db_column='id_fases_desarrollo')
     desarrollo = models.TextField(max_length=2000, blank=True)
     fecha_desarrollo = models.DateField(null=True, blank=True)
-    enviar_a_corregir = models.BooleanField(default=False)
+    enviar_a_corregir = models.BooleanField(default=True)
     class Meta:
         db_table = 'mtg_tab_desarrollodefases'
 

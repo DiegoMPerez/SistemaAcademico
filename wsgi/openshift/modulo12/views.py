@@ -9,6 +9,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.core.context_processors import csrf, request
 from django.core.urlresolvers import reverse
 from django.db.models.signals import post_save, pre_save, post_delete, pre_delete
+from django.db.models.sql.aggregates import Max
 from django.dispatch import receiver
 from django.forms.models import inlineformset_factory
 from django.forms.formsets import formset_factory
@@ -95,7 +96,7 @@ def docenteCorreccionView(request,id_e,id_f):
         faseD = MtgTabFasesdesarrollo.objects.get(id_version=version.id_version, id_fase=fase.id_fase)
         if id_f != '1':
             defTG = ""
-            desarrollo = MtgTabDesarrollodefases.objects.get(id_fases_desarrollo=faseD.id_fases_desarrollo)
+            desarrollo = MtgTabDesarrollodefases.objects.filter(id_fases_desarrollo=faseD.id_fases_desarrollo).order_by('-id_desarrollo')[0]
             if desarrollo.enviar_a_corregir is False:
                 raise
         if request.method == "POST":
@@ -187,14 +188,27 @@ def definicionView(request, id_e, id_f):
         version = MtgTabVersionamiento.objects.get(id_trab_grado=definicion.id_trab_grado)
         fase = MtgTabFases.objects.get(id_fase=faseN)
         fasesDesarrollo = MtgTabFasesdesarrollo.objects.get(id_fase=fase.id_fase,id_version=version.id_version)
+        desarrollo = MtgTabDesarrollodefases()
+        correccion = MtgTabCorrecciones()
+        try:
+            desarrollo = MtgTabDesarrollodefases.objects.filter(id_fases_desarrollo=fasesDesarrollo.id_fases_desarrollo).order_by('-id_desarrollo')[0]
+            correccion = MtgTabCorrecciones.objects.filter(id_fases_desarrollo=fasesDesarrollo.id_fases_desarrollo).order_by('-id_correccion')[0]
+            if correccion.enviar_correccion == False:
+                correccion = MtgTabCorrecciones()
+        except:
+            desarrollo.desarrollo = ""
+
         if request.method == "POST":
             setForm = desarrolloSetForm(request.POST,instance=fasesDesarrollo, initial=[{'fecha_desarrollo':hoydia()}])
             if setForm.is_valid():
-                setForm.save()
+                if request.POST.get('mtgtabdesarrollodefases_set-0-desarrollo') != desarrollo.desarrollo:
+                    correccion.enviar_correccion = False
+                    correccion.save()
+                    setForm.save()
                 return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
         else:
-            setForm = desarrolloSetForm(instance= fasesDesarrollo, initial=[{'fecha_desarrollo':hoydia()}])
-        ctx = {'formulario':setForm,"id_e":id_e,"id_f":fase,"lineamiento":lineamineto,"id_f":fase, 'fases':fases,"estudiante":estudiante}
+            setForm = desarrolloSetForm(initial=[{'fecha_desarrollo':hoydia(),'desarrollo':desarrollo.desarrollo}])
+        ctx = {'formulario':setForm,"id_e":id_e,"id_f":fase,"lineamiento":lineamineto,"id_f":fase, 'fases':fases,"estudiante":estudiante,'correccion':correccion}
         return render_to_response("modulo12/EstudianteDesarrolloFases.html", ctx,RequestContext(request))
     else:
         return HttpResponseRedirect('/estudiantes/'+id_e+'/desarrollo/')
